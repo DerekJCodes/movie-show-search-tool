@@ -1,12 +1,12 @@
 #Imports go here
-from models.movie import Movie
-from models.show import Show
-from mock_data import mock_movies, mock_shows, mock_database
+from services.tmdb_client import search_multi
+from services.converter import convert_results
 
 def main():
-    print("Mock database loaded:")
-    for item in mock_database:
-        print(item)
+    raw = search_multi("breaking-bad")
+    results = convert_results(raw)
+    for r in results[:5]:
+        print(r.media_type, r.id, r.vote_average)
 
 if __name__ == "__main__":
     main()
