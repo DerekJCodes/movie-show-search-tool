@@ -1,11 +1,13 @@
 class Show:
-    def __init__(self, title, seasons, rating, overview, poster_path=None, tmdb_id=None):
-        self.title = title
-        self.seasons = seasons
-        self.rating = rating
+    def __init__(self, id, name, first_air_date, vote_average, overview, poster_path, genre_ids, media_type):
+        self.id = id
+        self.name = name
+        self.first_air_date = first_air_date
+        self.vote_average = vote_average
         self.overview = overview
         self.poster_path = poster_path
-        self.tmdb_id = tmdb_id #For ID reference 
+        self.genre_ids = genre_ids 
+        self.media_type = media_type
 
     def __str__(self):
-        return f"{self.title} - {self.seasons} Seasons - Rating: {self.rating:.1f}"
+        return f"{self.name} - {self.first_air_date} Seasons - Rating: {self.vote_average:.1f}"
