@@ -1,6 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
+from services.parsers import parse_credits
 
 load_dotenv()
 
@@ -19,3 +20,8 @@ def search_multi(query):
     response = requests.get(url, params=params)
     response.raise_for_status()
     return response.json()
+
+def get_movie_credits(self, movie_id):
+    url=f"{BASE_URL}/movie/{movie_id}/credits"
+    data = self._get(url)
+    return parse_credits(data)
