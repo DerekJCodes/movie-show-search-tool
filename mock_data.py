@@ -1,5 +1,5 @@
 from models.movie import Movie
-from models.show import Show
+from models.tv_show import TVShow
 
 mock_movies = [
     Movie(
@@ -32,7 +32,7 @@ mock_movies = [
 ]
 
 mock_shows = [
-    Show(
+    TVShow(
         "Breaking Bad",
         5,
         9.5,
@@ -40,7 +40,7 @@ mock_shows = [
         None,
         tmdb_id=1396
     ),
-    Show(
+    TVShow(
         "Stranger Things",
         4,
         8.7,
@@ -48,7 +48,7 @@ mock_shows = [
         None,
         tmdb_id=66732
     ),
-    Show(
+    TVShow(
         "The Office",
         9,
         8.9,
