@@ -6,7 +6,9 @@ def main():
     raw = search_multi("breaking-bad")
     results = convert_results(raw)
     for r in results[:5]:
-        print(r.media_type, r.id, r.vote_average)
+        print(f"Type: {r.media_type.capitalize()}")
+        print(f"Title:", getattr(r,"title", getattr(r,"name", None)))
+        print(f"")
 
 if __name__ == "__main__":
     main()
