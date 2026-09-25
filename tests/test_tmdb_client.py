@@ -1,6 +1,5 @@
 import pytest
 import requests
-
 from services.tmdb_client import TMDBClient
 
 def test_search_multi(monkeypatch):
@@ -49,3 +48,8 @@ def test_get_correct_url(monkeypatch):
     assert captured_params["api_key"] == "FAKE_API_KEY"
     assert captured_params["query"] == "Regular Show"
 
+def test_tmdb_client_raise_error_when_api_key_missing():
+    with pytest.raises(ValueError) as exc_info:
+        TMDBClient(api_key=None)
+
+    assert "API Key" in str(exc_info.value)
