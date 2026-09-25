@@ -25,3 +25,27 @@ def test_search_multi(monkeypatch):
     assert "results" in data
     assert data["results"][0]["title"] == "Fake Movie"
     assert data["results"][1]["title"] == "Fake Show"
+
+def test_get_correct_url(monkeypatch):
+    captured_url = None
+    captured_params = None
+
+    def mock_get(url, params):
+        nonlocal captured_url, captured_params
+        captured_url = url
+        captured_params = params
+
+        class FakeResponse:
+            def raise_for_status(self): pass
+            def json(self): return {"OK": True}
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+    client = TMDBClient(api_key="FAKE_API_KEY")
+
+    client.search_multi("Regular Show")
+
+    assert captured_url == "https://api.themoviedb.org/3/search/multi"
+    assert captured_params["api_key"] == "FAKE_API_KEY"
+    assert captured_params["query"] == "Regular Show"
+
