@@ -11,8 +11,22 @@ API integration (TMDB/OMDb) will be added after the foundation is complete.
 - Multithreaded search (future)
 
 ## Project Structure
-- models/ — Movie, Show, SearchResult classes
-- services/ — API client + formatting utilities
-- data/ — mock JSON data for early testing
-- watchlist/ — save/load watchlist items
-- main.py — entry point
+- services/ — TMDB API client
+- models/ — Movie, Show, SearchResult (planned)
+- tests/ — pytest suite (initial test included)
+- data/ — mock JSON for early testing (planned)
+- main.py — entry point (planned)
+
+## Development Notes
+- Using movie ID `999999` during development to observe TMDB error behavior (401 with dummy key)
+- More tests (404, 401, success cases) will be added later
+- Additional endpoints (trending, popular, TV) planned
+
+## Next Steps
+This project will expand into:
+- More pytest tests
+- Additional TMDB endpoints
+- Watchlist functionality
+- Local data storage and formatting utilities
+
+This repo serves as the backend foundation for a future movie/TV search tool.
