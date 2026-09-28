@@ -54,7 +54,14 @@ def test_tmdb_client_raise_error_when_api_key_missing():
 
     assert "API Key" in str(exc_info.value)
 
-@pytest.mark.parametrize("invalid_id", [-1, 0, "abc", None, 3.14, {}, [], True])
+@pytest.mark.parametrize("invalid_id",
+                         [-1, 0, -999999, -1000000000,
+                          "abc", "123", "1", "000",
+                          None,
+                          3.14, 3.0, 10.0,
+                          {}, [], (1,), {1}, b"10", complex(1,2),
+                          True
+                          ])
 def test_get_movie_details_invalid_id_raises_error(invalid_id):
     client = TMDBClient(api_key="dummy")
 
