@@ -37,8 +37,8 @@ class TMDBClient:
         return parse_credits(data)
 
     def get_movie_details(self, movie_id: int):
-        if not isinstance(movie_id, int) or movie_id <= 0:
+        if type(movie_id) is not int or movie_id <= 0:
             raise ValueError("Invalid movie ID")
 
-        url = f"{self.base_url}/movie/{movie_id}"
+        url = f"{BASE_URL}/movie/{movie_id}"
         return self._get(url)
