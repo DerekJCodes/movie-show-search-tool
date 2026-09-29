@@ -1,6 +1,10 @@
 import pytest
-import requests
 from services.tmdb_client import TMDBClient
+from unittest.mock import Mock
+
+@pytest.fixture
+def tmdb_client():
+    return TMDBClient(api_key="dummy")
 
 def test_search_multi(monkeypatch):
     fake_json = {
@@ -70,3 +74,33 @@ def test_get_movie_details_invalid_id_raises_error(invalid_id):
 
     assert "invalid movie id" in str(exc_info.value).lower()
 
+def test_get_movie_details_nonexistent_id_returns_none(tmdb_client, mocker):
+    mock_response = Mock(status_code=404, json=lambda: {})
+    mocker.patch("requests.get", return_value=mock_response)
+
+    result = tmdb_client.get_movie_details(999999999)
+    assert result is None
+
+#If no API key is passed
+def test_missing_api_key_no_argument(monkeypatch):
+    monkeypatch.delenv("TMDB_API_KEY", raising=False)
+
+    with pytest.raises(ValueError):
+        TMDBClient(api_key=None)
+
+#If empty API string is passed
+def test_missing_api_key_empty_string():
+    with pytest.raises(ValueError):
+        TMDBClient(api_key="")
+
+#If .env isn't loading/env variable missing
+def test_missing_api_key_env_var(monkeypatch):
+    monkeypatch.delenv("TMDB_API_KEY", raising=False)
+
+    with pytest.raises(ValueError):
+        TMDBClient()
+
+#If API key contains a whitespace
+def test_missing_api_key_whitespace():
+    with pytest.raises(ValueError):
+        TMDBClient(api_key=" ")
