@@ -16,6 +16,7 @@ def test_search_multi(monkeypatch):
     }
     def mock_get(url, params):
         class FakeResponse:
+            status_code = 200
             def raise_for_status(self): pass
             def json(self): return fake_json
         return FakeResponse()
@@ -39,6 +40,8 @@ def test_get_correct_url(monkeypatch):
         captured_params = params
 
         class FakeResponse:
+            def __init__(self):
+                self.status_code = 200
             def raise_for_status(self): pass
             def json(self): return {"OK": True}
         return FakeResponse()
