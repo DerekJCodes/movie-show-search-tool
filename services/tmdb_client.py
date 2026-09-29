@@ -10,7 +10,7 @@ BASE_URL = "https://api.themoviedb.org/3"
 class TMDBClient:
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.getenv("TMDB_API_KEY")
-        if not self.api_key:
+        if not self.api_key or api_key.strip() == "":
             raise ValueError("TMDB API Key is required/missing")
 
     def _get(self, endpoint: str, params: dict | None = None):
@@ -19,9 +19,15 @@ class TMDBClient:
         params["api_key"] = self.api_key
 
         response = requests.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
 
+        #If handle "not found"
+        if response.status_code == 404:
+            return None
+
+        #Raise for all other error codes (for now)
+        response.raise_for_status()
+
+        return response.json()
 
     def search_multi(self, query: str):
         params = {
