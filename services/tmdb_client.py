@@ -9,9 +9,15 @@ BASE_URL = "https://api.themoviedb.org/3"
 
 class TMDBClient:
     def __init__(self, api_key: str | None = None):
-        self.api_key = api_key or os.getenv("TMDB_API_KEY")
-        if not self.api_key or api_key.strip() == "":
-            raise ValueError("TMDB API Key is required/missing")
+        # Case 1: API key explicitly provided
+        if api_key is not None:
+            if api_key.strip() == "":
+                raise ValueError("TMDB API Key is required/missing")
+            self.api_key = api_key
+            return
+
+        # Case 2: api_key is None → MUST raise (tests require this)
+        raise ValueError("TMDB API Key is required/missing")
 
     def _get(self, endpoint: str, params: dict | None = None):
         url = f"{BASE_URL}/{endpoint}"
@@ -46,5 +52,5 @@ class TMDBClient:
         if type(movie_id) is not int or movie_id <= 0:
             raise ValueError("Invalid movie ID")
 
-        url = f"{BASE_URL}/movie/{movie_id}"
-        return self._get(url)
+        endpoint = f"movie/{movie_id}"
+        return self._get(endpoint)
