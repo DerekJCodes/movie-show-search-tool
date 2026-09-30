@@ -107,3 +107,25 @@ def test_missing_api_key_env_var(monkeypatch):
 def test_missing_api_key_whitespace():
     with pytest.raises(ValueError):
         TMDBClient(api_key=" ")
+
+#If TMDB endpoint is valid & is a movie (happy path)
+def test_get_movie_details_success(monkeypatch, tmdb_client):
+    fake_json = {
+        "id": 123,
+        "title": "Fake Movie",
+        "overview": "Fake Movie Overview"
+    }
+
+    def mock_get(url, params):
+        class FakeResponse:
+            status_code = 200
+            def raise_for_status(self): pass
+            def json(self): return fake_json
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    data = tmdb_client.get_movie_details(123)
+
+    assert data["id"] == 123
+    assert data["title"] == "Fake Movie"
