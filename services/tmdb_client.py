@@ -44,20 +44,30 @@ class TMDBClient:
         }
         return self._get("search/multi", params)
 
-    def get_movie_credits(self, movie_id: int):
+    def get_movie_credits(self, movie_id: int | str):
+        if isinstance(movie_id, bool) or not isinstance(movie_id, int) or movie_id <= 0:
+            raise ValueError("Invalid movie ID")
+
         data = self._get(f"movie/{movie_id}/credits")
-        return parse_credits(data)
+        return parse_credits(data) if data is not None else None
 
     def get_movie_details(self, movie_id: int):
-        if type(movie_id) is not int or movie_id <= 0:
+        if isinstance(movie_id, bool) or not isinstance(movie_id, int) or movie_id <= 0:
             raise ValueError("Invalid movie ID")
 
         endpoint = f"movie/{movie_id}"
         return self._get(endpoint)
 
-    def get_tv_details(self, tv_id: int | str) -> dict | None:
-        if type(tv_id) is not int or tv_id <= 0:
+    def get_tv_credits(self, tv_id: int | str):
+        if isinstance(tv_id, bool) or not isinstance(tv_id, int) or tv_id <= 0:
             raise ValueError("Invalid TV ID")
 
-        endpoint = f"/tv/{tv_id}"
+        data = self._get(f"tv/{tv_id}/credits")
+        return parse_credits(data) if data is not None else None
+
+    def get_tv_details(self, tv_id: int | str) -> dict | None:
+        if isinstance(tv_id, bool) or not isinstance(tv_id, int) or tv_id <= 0:
+            raise ValueError("Invalid TV ID")
+
+        endpoint = f"tv/{tv_id}"
         return self._get(endpoint)
