@@ -54,3 +54,10 @@ class TMDBClient:
 
         endpoint = f"movie/{movie_id}"
         return self._get(endpoint)
+
+    def get_tv_details(self, tv_id: int | str) -> dict | None:
+        if type(tv_id) is not int or tv_id <= 0:
+            raise ValueError("Invalid TV ID")
+
+        endpoint = f"/tv/{tv_id}"
+        return self._get(endpoint)

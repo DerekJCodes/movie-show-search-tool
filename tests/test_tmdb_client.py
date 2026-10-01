@@ -129,3 +129,42 @@ def test_get_movie_details_success(monkeypatch, tmdb_client):
 
     assert data["id"] == 123
     assert data["title"] == "Fake Movie"
+
+@pytest.mark.parametrize("invalid_id", [
+    -1, 0, -999999, -1000000000,
+    "abc", "invalid", None,
+    3.14, 3.0, 10.0,
+    (1+2j), True
+])
+def test_get_tv_details_invalid_id_raises_error(tmdb_client, invalid_id):
+
+    with pytest.raises(ValueError) as exc_info:
+        tmdb_client.get_tv_details(invalid_id)
+
+def test_get_tv_details_nonexistent_id_returns_none(tmdb_client, mocker):
+    mock_response = Mock(status_code=404, json=lambda: {})
+    mocker.patch("requests.get", return_value=mock_response)
+
+    result = tmdb_client.get_tv_details(999999999)
+    assert result is None
+
+def test_get_tv_details_success(monkeypatch, tmdb_client):
+    fake_json = {
+        "id": 1399,
+        "name": "Game of Thrones",
+        "overview": "Nine noble families fight for control over Westeros."
+    }
+
+    def mock_get(url, params):
+        class FakeResponse:
+            status_code = 200
+            def raise_for_status(self): pass
+            def json(self): return fake_json
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    data = tmdb_client.get_tv_details(1399)
+
+    assert data["id"] == 1399
+    assert data["name"] == "Game of Thrones"
