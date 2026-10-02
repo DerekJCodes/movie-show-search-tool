@@ -1,4 +1,6 @@
 import pytest
+
+from models.movie import Movie
 from services.tmdb_client import TMDBClient
 from unittest.mock import Mock
 
@@ -113,7 +115,11 @@ def test_get_movie_details_success(monkeypatch, tmdb_client):
     fake_json = {
         "id": 123,
         "title": "Fake Movie",
-        "overview": "Fake Movie Overview"
+        "release_date": "2024-01-01",
+        "vote_average": 8.5,
+        "runtime": 120,
+        "overview": "Fake Movie Overview",
+        "poster_path": "/poster.jpg"
     }
 
     def mock_get(url, params):
@@ -127,8 +133,9 @@ def test_get_movie_details_success(monkeypatch, tmdb_client):
 
     data = tmdb_client.get_movie_details(123)
 
-    assert data["id"] == 123
-    assert data["title"] == "Fake Movie"
+    assert isinstance(data, Movie)
+    assert data.id == 123
+    assert data.title == "Fake Movie"
 
 @pytest.mark.parametrize("invalid_id", [
     -1, 0, -999999, -1000000000,

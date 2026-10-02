@@ -1,3 +1,4 @@
+from models.movie import Movie
 from models.credits import CastMember, CrewMember, Credits
 
 sample_json = {
@@ -19,6 +20,17 @@ sample_json = {
         }
     ]
 }
+
+def parse_movie(json_data):
+    return Movie(
+        id=json_data.get("id"),
+        title=json_data.get("title"),
+        release_date=json_data.get("release_date"),
+        vote_average=json_data.get("vote_average"),
+        runtime=json_data.get("runtime"),
+        overview=json_data.get("overview"),
+        poster_path=json_data.get("poster_path")
+    )
 
 def parse_credits(json_data):
     cast_list = []

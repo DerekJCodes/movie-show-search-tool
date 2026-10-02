@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from services.parsers import parse_credits
+from services.parsers import parse_credits, parse_movie
 
 load_dotenv()
 
@@ -56,7 +56,8 @@ class TMDBClient:
             raise ValueError("Invalid movie ID")
 
         endpoint = f"movie/{movie_id}"
-        return self._get(endpoint)
+        data = self._get(endpoint)
+        return parse_movie(data) if data is not None else None
 
     def get_tv_credits(self, tv_id: int | str):
         if isinstance(tv_id, bool) or not isinstance(tv_id, int) or tv_id <= 0:

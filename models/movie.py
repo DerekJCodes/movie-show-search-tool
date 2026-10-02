@@ -1,12 +1,20 @@
 class Movie:
-    def __init__(self, id, title, release_date, vote_average, overview, poster_path, genre_ids):
+    def __init__(self,
+                 id: int,
+                 title: str,
+                 release_date: str,
+                 vote_average: float,
+                 runtime: int,
+                 overview: str,
+                 poster_path: None
+                 ):
         self.id = id
         self.title = title
         self.release_date = release_date
         self.vote_average = vote_average
+        self.runtime = runtime
         self.overview = overview
         self.poster_path = poster_path
-        self.genre_ids = genre_ids #For future ID reference
         self.media = "movie"
     #Magic method of string to make data more readable
     def __str__(self):
