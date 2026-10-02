@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from services.parsers import parse_credits, parse_movie
+from services.parsers import parse_credits, parse_movie, parse_show
 
 load_dotenv()
 
@@ -66,9 +66,11 @@ class TMDBClient:
         data = self._get(f"tv/{tv_id}/credits")
         return parse_credits(data) if data is not None else None
 
-    def get_tv_details(self, tv_id: int | str) -> dict | None:
+    def get_tv_details(self, tv_id: int | str):
         if isinstance(tv_id, bool) or not isinstance(tv_id, int) or tv_id <= 0:
             raise ValueError("Invalid TV ID")
 
         endpoint = f"tv/{tv_id}"
-        return self._get(endpoint)
+        data = self._get(endpoint)
+
+        return parse_show(data) if data is not None else None

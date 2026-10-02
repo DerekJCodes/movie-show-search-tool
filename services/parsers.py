@@ -1,5 +1,6 @@
 from models.movie import Movie
 from models.credits import CastMember, CrewMember, Credits
+from models.tv_show import TVShow
 
 sample_json = {
     "cast": [
@@ -28,6 +29,18 @@ def parse_movie(json_data):
         release_date=json_data.get("release_date"),
         vote_average=json_data.get("vote_average"),
         runtime=json_data.get("runtime"),
+        overview=json_data.get("overview"),
+        poster_path=json_data.get("poster_path"),
+    )
+
+def parse_show(json_data):
+    return TVShow(
+        id = json_data.get("id"),
+        name=json_data.get("name"),
+        first_air_date=json_data.get("first_air_date"),
+        vote_average=json_data.get("vote_average"),
+        number_of_episodes=json_data.get("number_of_episodes"),
+        number_of_seasons=json_data.get("number_of_seasons"),
         overview=json_data.get("overview"),
         poster_path=json_data.get("poster_path")
     )
