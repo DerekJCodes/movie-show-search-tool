@@ -1,6 +1,7 @@
 import pytest
 
 from models.movie import Movie
+from models.tv_show import TVShow
 from services.tmdb_client import TMDBClient
 from unittest.mock import Mock
 
@@ -173,5 +174,6 @@ def test_get_tv_details_success(monkeypatch, tmdb_client):
 
     data = tmdb_client.get_tv_details(1399)
 
-    assert data["id"] == 1399
-    assert data["name"] == "Game of Thrones"
+    assert isinstance(data, TVShow)
+    assert data.id == 1399
+    assert data.name == "Game of Thrones"
