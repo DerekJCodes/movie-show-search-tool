@@ -8,7 +8,7 @@ def main():
     results = convert_results(raw)
     for r in results[:5]:
         print(f"Type: {r.media_type.capitalize()}")
-        print(f"Title:", getattr(r,"title", getattr(r,"name", None)))
+        print(f"Title: {r.title}")
         print(f"")
 
 if __name__ == "__main__":
