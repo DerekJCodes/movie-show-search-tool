@@ -9,7 +9,14 @@ class SearchResult:
 
         if self.media_type == "movie":
             self.title = raw.get("title")
-            self.release_date = raw.get("release_date")
+            self.date = raw.get("release_date")
         elif self.media_type == "tv":
-            self.name = raw.get("name")
-            self.first_air_date = raw.get("first_air_date")
+            self.title = raw.get("name")
+            self.date = raw.get("first_air_date")
+        else:
+            self.title = raw.get("name")
+            self.date = None
+
+    def __str__(self):
+        rating = f"{self.vote_average:.1f}" if self.vote_average is not None else "N/A"
+        return f"{self.title} ({self.media_type}): - Rating: {rating}"
