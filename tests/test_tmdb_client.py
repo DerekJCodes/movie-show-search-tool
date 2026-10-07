@@ -58,11 +58,16 @@ def test_get_correct_url(monkeypatch):
     assert captured_params["api_key"] == "FAKE_API_KEY"
     assert captured_params["query"] == "Regular Show"
 
-def test_tmdb_client_raise_error_when_api_key_missing():
+def test_tmdb_client_raise_error_when_api_key_missing(monkeypatch):
+    monkeypatch.delenv("TMDB_API_KEY", raising=False)
     with pytest.raises(ValueError) as exc_info:
         TMDBClient(api_key=None)
 
     assert "API Key" in str(exc_info.value)
+
+def test_api_key_read_from_env(monkeypatch):
+    monkeypatch.setenv("TMDB_API_KEY", "env_key")
+    assert TMDBClient().api_key == "env_key"
 
 @pytest.mark.parametrize("invalid_id",
                          [-1, 0, -999999, -1000000000,

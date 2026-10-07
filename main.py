@@ -1,9 +1,10 @@
 #Imports go here
-from services.tmdb_client import search_multi
+from services.tmdb_client import TMDBClient
 from services.converter import convert_results
 
 def main():
-    raw = search_multi("breaking-bad")
+    client = TMDBClient()
+    raw = client.search_multi("breaking-bad")
     results = convert_results(raw)
     for r in results[:5]:
         print(f"Type: {r.media_type.capitalize()}")
