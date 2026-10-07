@@ -9,7 +9,7 @@ BASE_URL = "https://api.themoviedb.org/3"
 
 class TMDBClient:
     def __init__(self, api_key: str | None = None):
-        key = api_key if api_key else os.getenv("TMDB_API_KEY")
+        key = api_key if api_key is not None else os.getenv("TMDB_API_KEY")
         if not key or not key.strip():
             raise ValueError("TMDB API key is required/missing")
         self.api_key = key.strip()

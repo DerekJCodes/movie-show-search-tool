@@ -63,7 +63,7 @@ def test_tmdb_client_raise_error_when_api_key_missing(monkeypatch):
     with pytest.raises(ValueError) as exc_info:
         TMDBClient(api_key=None)
 
-    assert "API Key" in str(exc_info.value)
+    assert "api key" in str(exc_info.value).lower()
 
 def test_api_key_read_from_env(monkeypatch):
     monkeypatch.setenv("TMDB_API_KEY", "env_key")
