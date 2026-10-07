@@ -23,16 +23,16 @@ def test_parse_credits():
         ]
     }
 
-credits = parse_credits(sample_json)
+    credits = parse_credits(sample_json)
 
-assert len(credits.cast) == 1
-assert isinstance(credits.cast[0], CastMember)
-assert credits.cast[0].name == "Tobey Maguire"
-assert credits.cast[0].character == "Peter Parker / Spider-Man"
+    assert len(credits.cast) == 1
+    assert isinstance(credits.cast[0], CastMember)
+    assert credits.cast[0].name == "Tobey Maguire"
+    assert credits.cast[0].character == "Peter Parker / Spider-Man"
 
-assert len(credits.crew) == 1
-assert isinstance(credits.crew[0], CrewMember)
-assert credits.crew[0].name == "Sam Raimi"
-assert credits.crew[0].job == "Director"
-assert credits.crew[0].department == "Directing"
+    assert len(credits.crew) == 1
+    assert isinstance(credits.crew[0], CrewMember)
+    assert credits.crew[0].name == "Sam Raimi"
+    assert credits.crew[0].job == "Director"
+    assert credits.crew[0].department == "Directing"
 
