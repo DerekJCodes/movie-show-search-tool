@@ -71,8 +71,3 @@ def parse_credits(json_data):
         )
 
     return Credits(cast_list, crew_list)
-
-credits = parse_credits(sample_json)
-
-print(credits.cast[0].name)
-print(credits.crew[0].job)
