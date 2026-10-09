@@ -19,7 +19,7 @@ class TMDBClient:
         params = params or {}
         params["api_key"] = self.api_key
 
-        response = requests.get(url, params=params)
+        response = requests.get(url, params=params, timeout=10)
 
         #If handle "not found"
         if response.status_code == 404:
