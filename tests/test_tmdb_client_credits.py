@@ -62,7 +62,7 @@ def test_credits_success(monkeypatch, tmdb_client, method):
 
 #If a cast member has no profile picture (real TMDB data has these)
 def test_credits_missing_profile_path(monkeypatch, tmdb_client):
-    def mock_get(url, params):
+    def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 200
             def raise_for_status(self): pass
@@ -122,16 +122,15 @@ def test_invalid_api_key_raises_http_error(monkeypatch, tmdb_client):
         tmdb_client.get_movie_details(557)
 
 #If TMDB is having issues(server problems, rate limiting), we raise
-@pytest.mark.parametrize("status_code", [500,502,503,429])
-def test_server_error_raises_http_error(monkeypatch, tmdb_client, status_code):
+@pytest.mark.parametrize("code", [500,502,503,429])
+def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
-            status_code = 500
+            status_code = code
             def raise_for_status(self):
                 if self.status_code >= 400:
                     raise requests.HTTPError(f"{self.status_code} Error")
             def json(self): return {}
-        FakeResponse.status_code = status_code
         return FakeResponse()
 
     monkeypatch.setattr("requests.get", mock_get)

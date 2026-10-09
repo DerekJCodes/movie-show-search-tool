@@ -3,7 +3,6 @@ import pytest
 from models.movie import Movie
 from models.tv_show import TVShow
 from services.tmdb_client import TMDBClient
-from unittest.mock import Mock
 
 @pytest.fixture
 def tmdb_client():
@@ -166,6 +165,8 @@ def test_get_tv_details_invalid_id_raises_error(tmdb_client, invalid_id):
 
     with pytest.raises(ValueError) as exc_info:
         tmdb_client.get_tv_details(invalid_id)
+
+    assert "invalid tv id" in str(exc_info.value).lower()
 
 def test_get_tv_details_success(monkeypatch, tmdb_client):
     fake_json = {
