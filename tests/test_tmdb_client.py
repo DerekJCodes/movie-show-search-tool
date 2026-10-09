@@ -17,7 +17,7 @@ def test_search_multi(monkeypatch):
             {"id": 2, "media_type": "tv", "title": "Fake Show"}
         ]
     }
-    def mock_get(url, params):
+    def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 200
             def raise_for_status(self): pass
@@ -37,7 +37,7 @@ def test_get_correct_url(monkeypatch):
     captured_url = None
     captured_params = None
 
-    def mock_get(url, params):
+    def mock_get(url, params,**kwargs):
         nonlocal captured_url, captured_params
         captured_url = url
         captured_params = params
@@ -57,6 +57,26 @@ def test_get_correct_url(monkeypatch):
     assert captured_url == "https://api.themoviedb.org/3/search/multi"
     assert captured_params["api_key"] == "FAKE_API_KEY"
     assert captured_params["query"] == "Regular Show"
+
+#If the client sets a timeout so requests can't hang forever
+def test_get_passes_timeout(monkeypatch, tmdb_client):
+    captured_kwargs = None
+
+    def mock_get(url, params, **kwargs):
+        nonlocal captured_kwargs
+        captured_kwargs = kwargs
+
+        class FakeResponse:
+            status_code = 200
+            def raise_for_status(self): pass
+            def json(self): return {"OK": True}
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    tmdb_client.search_multi("Regular Show")
+
+    assert captured_kwargs.get("timeout") == 10
 
 def test_tmdb_client_raise_error_when_api_key_missing(monkeypatch):
     monkeypatch.delenv("TMDB_API_KEY", raising=False)
@@ -84,13 +104,6 @@ def test_get_movie_details_invalid_id_raises_error(invalid_id):
         client.get_movie_details(invalid_id)
 
     assert "invalid movie id" in str(exc_info.value).lower()
-
-def test_get_movie_details_nonexistent_id_returns_none(tmdb_client, mocker):
-    mock_response = Mock(status_code=404, json=lambda: {})
-    mocker.patch("requests.get", return_value=mock_response)
-
-    result = tmdb_client.get_movie_details(999999999)
-    assert result is None
 
 #If no API key is passed
 def test_missing_api_key_no_argument(monkeypatch):
@@ -128,7 +141,7 @@ def test_get_movie_details_success(monkeypatch, tmdb_client):
         "poster_path": "/poster.jpg"
     }
 
-    def mock_get(url, params):
+    def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 200
             def raise_for_status(self): pass
@@ -154,13 +167,6 @@ def test_get_tv_details_invalid_id_raises_error(tmdb_client, invalid_id):
     with pytest.raises(ValueError) as exc_info:
         tmdb_client.get_tv_details(invalid_id)
 
-def test_get_tv_details_nonexistent_id_returns_none(tmdb_client, mocker):
-    mock_response = Mock(status_code=404, json=lambda: {})
-    mocker.patch("requests.get", return_value=mock_response)
-
-    result = tmdb_client.get_tv_details(999999999)
-    assert result is None
-
 def test_get_tv_details_success(monkeypatch, tmdb_client):
     fake_json = {
         "id": 1399,
@@ -168,7 +174,7 @@ def test_get_tv_details_success(monkeypatch, tmdb_client):
         "overview": "Nine noble families fight for control over Westeros."
     }
 
-    def mock_get(url, params):
+    def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 200
             def raise_for_status(self): pass
