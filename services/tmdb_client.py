@@ -2,10 +2,17 @@ import os
 import requests
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
+from services.exceptions import TMDBAuthError
 
 load_dotenv()
 
 BASE_URL = "https://api.themoviedb.org/3"
+def _error_message(response, default):
+    """Use TMDB's own status_message if the body has one, otherwise the default."""
+    try:
+        return response.json().get("status_message", default)
+    except ValueError:
+        return default
 
 class TMDBClient:
     def __init__(self, api_key: str | None = None):
@@ -24,6 +31,13 @@ class TMDBClient:
         #If handle "not found"
         if response.status_code == 404:
             return None
+
+        #If API key is invalid/unauthorized
+        if response.status_code == 401:
+            raise TMDBAuthError(
+                _error_message(response, "Invalid/unauthorized API key"),
+                status_code=401
+            )
 
         #Raise for all other error codes (for now)
         response.raise_for_status()

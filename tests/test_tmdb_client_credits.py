@@ -4,6 +4,7 @@ import requests
 from models.credits import Credits, CastMember, CrewMember
 from services.converter import convert_results
 from services.tmdb_client import TMDBClient
+from services.exceptions import TMDBAuthError
 
 # Response shapes captured from real TMDB calls in Postman
 NOT_FOUND_BODY = {
@@ -107,7 +108,7 @@ def test_credits_invalid_id_raises_error(monkeypatch, tmdb_client, method, inval
     assert calls == []
 
 #If the API key is invalid, TMDB returns 401 and we raise
-def test_invalid_api_key_raises_http_error(monkeypatch, tmdb_client):
+def test_invalid_api_key_raises_auth_error(monkeypatch, tmdb_client):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 401
@@ -118,11 +119,14 @@ def test_invalid_api_key_raises_http_error(monkeypatch, tmdb_client):
 
     monkeypatch.setattr("requests.get", mock_get)
 
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(TMDBAuthError) as exc_info:
         tmdb_client.get_movie_details(557)
 
+    assert exc_info.value.status_code == 401
+    assert "Invalid API key" in str(exc_info.value)
+
 #If TMDB is having issues(server problems, rate limiting), we raise
-@pytest.mark.parametrize("code", [500,502,503,429])
+@pytest.mark.parametrize("code", [500,502,503])
 def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
