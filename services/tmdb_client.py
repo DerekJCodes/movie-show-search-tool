@@ -2,7 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
-from services.exceptions import TMDBAuthError, TMDBServerError
+from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError
 
 load_dotenv()
 
@@ -44,6 +44,13 @@ class TMDBClient:
             raise TMDBServerError(
                 _error_message(response, "TMDB server error"),
                 status_code=response.status_code
+            )
+
+        #If TMDB is having rate-limiting error (429)
+        if response.status_code == 429:
+            raise TMDBRateLimitError(
+                _error_message(response, "Rate limit exceeded, try again later"),
+                status_code=429
             )
 
         #Raise for all other error codes (for now)
