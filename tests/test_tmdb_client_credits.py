@@ -4,7 +4,7 @@ import requests
 from models.credits import Credits, CastMember, CrewMember
 from services.converter import convert_results
 from services.tmdb_client import TMDBClient
-from services.exceptions import TMDBAuthError
+from services.exceptions import TMDBAuthError, TMDBServerError
 
 # Response shapes captured from real TMDB calls in Postman
 NOT_FOUND_BODY = {
@@ -127,7 +127,7 @@ def test_invalid_api_key_raises_auth_error(monkeypatch, tmdb_client):
 
 #If TMDB is having issues(server problems, rate limiting), we raise
 @pytest.mark.parametrize("code", [500,502,503])
-def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
+def test_server_error_raises_server_error(monkeypatch, tmdb_client, code):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = code
@@ -139,8 +139,11 @@ def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
 
     monkeypatch.setattr("requests.get", mock_get)
 
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(TMDBServerError) as exc_info:
         tmdb_client.search_multi("spiderman")
+
+    assert exc_info.value.status_code == code
+    assert "server error" in str(exc_info.value).lower()
 
 #If a search finds nothing, TMDB returns 200 with an empty list
 def test_empty_search_results_convert_to_empty_list(monkeypatch, tmdb_client):

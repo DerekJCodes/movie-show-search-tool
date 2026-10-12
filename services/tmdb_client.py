@@ -2,7 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
-from services.exceptions import TMDBAuthError
+from services.exceptions import TMDBAuthError, TMDBServerError
 
 load_dotenv()
 
@@ -37,6 +37,13 @@ class TMDBClient:
             raise TMDBAuthError(
                 _error_message(response, "Invalid/unauthorized API key"),
                 status_code=401
+            )
+
+        #If TMDB is having server-side errors (any 5xx)
+        if response.status_code >= 500:
+            raise TMDBServerError(
+                _error_message(response, "TMDB server error"),
+                status_code=response.status_code
             )
 
         #Raise for all other error codes (for now)

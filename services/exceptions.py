@@ -7,6 +7,9 @@ class TMDBError(Exception):
 class TMDBAuthError(TMDBError):
     """The API key was missing, invalid, or not authorized (HTTP 401)."""
 
+class TMDBServerError(TMDBError):
+    """TMDB had a problem on its side (HTTP 5xx)."""
+
 class TMDBRateLimitError(TMDBError):
     """Too many requests (HTTP 429)."""
 
