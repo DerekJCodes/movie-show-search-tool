@@ -4,6 +4,7 @@ import requests
 from models.credits import Credits, CastMember, CrewMember
 from services.converter import convert_results
 from services.tmdb_client import TMDBClient
+from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError, TMDBConnectionError
 
 # Response shapes captured from real TMDB calls in Postman
 NOT_FOUND_BODY = {
@@ -107,7 +108,7 @@ def test_credits_invalid_id_raises_error(monkeypatch, tmdb_client, method, inval
     assert calls == []
 
 #If the API key is invalid, TMDB returns 401 and we raise
-def test_invalid_api_key_raises_http_error(monkeypatch, tmdb_client):
+def test_invalid_api_key_raises_auth_error(monkeypatch, tmdb_client):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = 401
@@ -118,12 +119,15 @@ def test_invalid_api_key_raises_http_error(monkeypatch, tmdb_client):
 
     monkeypatch.setattr("requests.get", mock_get)
 
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(TMDBAuthError) as exc_info:
         tmdb_client.get_movie_details(557)
 
-#If TMDB is having issues(server problems, rate limiting), we raise
-@pytest.mark.parametrize("code", [500,502,503,429])
-def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
+    assert exc_info.value.status_code == 401
+    assert "Invalid API key" in str(exc_info.value)
+
+#If TMDB is having issues(server problems), we raise
+@pytest.mark.parametrize("code", [500,502,503])
+def test_server_error_raises_server_error(monkeypatch, tmdb_client, code):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = code
@@ -135,8 +139,31 @@ def test_server_error_raises_http_error(monkeypatch, tmdb_client, code):
 
     monkeypatch.setattr("requests.get", mock_get)
 
-    with pytest.raises(requests.HTTPError):
+    with pytest.raises(TMDBServerError) as exc_info:
         tmdb_client.search_multi("spiderman")
+
+    assert exc_info.value.status_code == code
+    assert "server error" in str(exc_info.value).lower()
+
+@pytest.mark.parametrize("code", [429])
+#IF TMDB is having issues(rate-limiting problems) we raise
+def test_rate_limit_raises_rate_limit_error(monkeypatch, tmdb_client, code):
+    def mock_get(url, params, **kwargs):
+        class FakeResponse:
+            status_code = code
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise requests.HTTPError(f"{self.status_code} Error")
+            def json(self): return {}
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    with pytest.raises(TMDBRateLimitError) as exc_info:
+        tmdb_client.search_multi("spiderman")
+
+    assert exc_info.value.status_code == 429
+    assert "rate limit" in str(exc_info.value).lower()
 
 #If a search finds nothing, TMDB returns 200 with an empty list
 def test_empty_search_results_convert_to_empty_list(monkeypatch, tmdb_client):
@@ -155,10 +182,19 @@ def test_empty_search_results_convert_to_empty_list(monkeypatch, tmdb_client):
 
     assert convert_results(raw) == []
 
-def test_server_timeout(monkeypatch, tmdb_client):
+@pytest.mark.parametrize("exc_type", [requests.Timeout, requests.ConnectionError])
+def test_connection_failure_raises_connection_error(monkeypatch, exc_type):
+    client = TMDBClient(api_key="FAKE_API_KEY"
+                        )
     def mock_get(url, params, **kwargs):
-        raise requests.Timeout()
+        raise exc_type(f"failed for {url}?api_key={params['api_key']}")
 
     monkeypatch.setattr("requests.get", mock_get)
-    with pytest.raises(requests.Timeout):
-        tmdb_client.search_multi("spiderman")
+
+    with pytest.raises(TMDBConnectionError) as exc_info:
+        client.search_multi("spiderman")
+
+    assert exc_info.value.status_code is None
+    assert "FAKE_API_KEY" not in str(exc_info.value)
+    assert "could not reach" in str(exc_info.value).lower()
+    assert exc_info.value.__suppress_context__ is True
