@@ -2,7 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
-from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError
+from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError, TMDBConnectionError
 
 load_dotenv()
 
@@ -26,7 +26,12 @@ class TMDBClient:
         params = params or {}
         params["api_key"] = self.api_key
 
-        response = requests.get(url, params=params, timeout=10)
+        try:
+            response = requests.get(url, params=params, timeout=10)
+        except (requests.Timeout, requests.ConnectionError):
+            raise TMDBConnectionError(
+                "Could not reach TMDB (timeout/network error)"
+            ) from None
 
         #If handle "not found"
         if response.status_code == 404:
