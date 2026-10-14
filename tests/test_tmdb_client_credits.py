@@ -151,6 +151,7 @@ def test_rate_limit_raises_rate_limit_error(monkeypatch, tmdb_client, code):
     def mock_get(url, params, **kwargs):
         class FakeResponse:
             status_code = code
+            headers = {}
             def raise_for_status(self):
                 if self.status_code >= 400:
                     raise requests.HTTPError(f"{self.status_code} Error")
@@ -164,6 +165,32 @@ def test_rate_limit_raises_rate_limit_error(monkeypatch, tmdb_client, code):
 
     assert exc_info.value.status_code == 429
     assert "rate limit" in str(exc_info.value).lower()
+
+#If TMDB sends a Retry-After header, we expose it (None if missing or not a number)
+@pytest.mark.parametrize("response_headers, expected", [
+    ({"Retry-After": "7"}, 7),
+    ({"Retry-After": "0"}, 0),
+    ({}, None),
+    ({"Retry-After": "soon"}, None),
+], ids=["seconds", "zero", "missing", "not-a-number"])
+def test_rate_limit_error_includes_retry_after(monkeypatch, tmdb_client,response_headers, expected):
+    def mock_get(url, params, **kwargs):
+        class FakeResponse:
+            status_code = 429
+            headers = response_headers
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise requests.HTTPError(f"{self.status_code} Error")
+            def json(self): return {}
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    with pytest.raises(TMDBRateLimitError) as exc_info:
+        tmdb_client.search_multi("spiderman")
+
+    assert exc_info.value.retry_after == expected
+    assert exc_info.value.status_code == 429
 
 #If a search finds nothing, TMDB returns 200 with an empty list
 def test_empty_search_results_convert_to_empty_list(monkeypatch, tmdb_client):
