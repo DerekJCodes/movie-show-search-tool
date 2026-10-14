@@ -14,6 +14,13 @@ def _error_message(response, default):
     except ValueError:
         return default
 
+def _retry_after_seconds(response):
+    """Read Retry-After as whole seconds, or None if missing/not a number"""
+    try:
+        return int(response.headers.get("Retry-After"))
+    except (TypeError, ValueError):
+        return None
+
 class TMDBClient:
     def __init__(self, api_key: str | None = None):
         key = api_key if api_key is not None else os.getenv("TMDB_API_KEY")
@@ -55,7 +62,8 @@ class TMDBClient:
         if response.status_code == 429:
             raise TMDBRateLimitError(
                 _error_message(response, "Rate limit exceeded, try again later"),
-                status_code=429
+                status_code=429,
+                retry_after = _retry_after_seconds(response)
             )
 
         #Raise for all other error codes (for now)
