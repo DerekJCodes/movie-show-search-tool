@@ -1,5 +1,6 @@
 from models.search_result import SearchResult
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
+from services.converter import convert_results
 
 def friendly_error(exc):
     if isinstance(exc, TMDBRateLimitError):
@@ -38,3 +39,8 @@ def format_results(results):
     for number, r in enumerate(results, start=1):
         lines.append(format_line(number, r))
     return "\n".join(lines)
+
+def run_search(client, query):
+    raw = client.search_multi(query)
+    results = convert_results(raw)
+    return format_results(results)

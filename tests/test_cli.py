@@ -1,7 +1,23 @@
 import pytest
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
-from cli import friendly_error, format_results
+from cli import friendly_error, format_results, run_search
 from models.search_result import SearchResult
+from main import main
+
+class FakeClient:
+    def search_multi(self, query):
+        return {"results": [
+            {"id": 1, "media_type": "movie", "title": "Spider-Man",
+             "release_date": "2002-05-01", "vote_average": 7.4},
+        ]}
+
+class FakeEmptyClient:
+    def search_multi(self, query):
+        return {"results": []}
+
+class RateLimitedClient:
+    def search_multi(self, query):
+        raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
 
 def test_rate_limit_message_includes_wait_time():
     err = TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
@@ -91,3 +107,27 @@ def test_format_results_missing_rating_shows_na():
     })]
 
     assert format_results(results) == "1. [Movie] Unknown Film (2020) - Rating: N/A"
+
+def test_run_search_formats_results():
+    output = run_search(FakeClient(), "spiderman")
+
+    assert output == "1. [Movie] Spider-Man (2002) - Rating: 7.4"
+
+def test_run_search_formats_no_results():
+    output = run_search(FakeEmptyClient(), "spiderman")
+
+    assert output == "No results found."
+
+def test_main_search_prints_results(capsys):
+    exit_code = main(["search", "spiderman"], client=FakeClient())
+
+    captured = capsys.readouterr()
+    assert "Spider-Man" in captured.out
+    assert exit_code == 0
+
+def test_main_prints_friendly_error_and_returns_1(capsys):
+    exit_code = main(["search", "spiderman"], client=RateLimitedClient())
+
+    captured = capsys.readouterr()
+    assert "30 seconds" in captured.err
+    assert exit_code == 1
