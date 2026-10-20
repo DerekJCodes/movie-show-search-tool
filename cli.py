@@ -28,7 +28,7 @@ def format_line(number, r):
 
     if r.media_type != "person":
         rating = r.vote_average if r.vote_average is not None else "N/A"
-        line += f" - Rating: {rating}"
+        line += f" - Rating: {rating:.1f}"
 
     return line
 
