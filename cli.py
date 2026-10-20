@@ -1,4 +1,3 @@
-from models.search_result import SearchResult
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
 from services.converter import convert_results
 
@@ -27,8 +26,13 @@ def format_line(number, r):
         line += f" ({r.date[:4]})"
 
     if r.media_type != "person":
-        rating = r.vote_average if r.vote_average is not None else "N/A"
-        line += f" - Rating: {rating:.1f}"
+        if r.vote_average is not None:
+            rating = f"{r.vote_average:.1f}"
+        else:
+            rating = "N/A"
+        line += f" - Rating: {rating}"
+
+    line += f" - id: {r.id}"
 
     return line
 

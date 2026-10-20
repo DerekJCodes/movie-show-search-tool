@@ -70,7 +70,7 @@ def test_format_results_movie_line():
         "release_date": "2002-05-01", "vote_average": 7.4,
     })]
 
-    assert format_results(results) == "1. [Movie] Spider-Man (2002) - Rating: 7.4"
+    assert format_results(results) == "1. [Movie] Spider-Man (2002) - Rating: 7.4 - id: 1"
 
 def test_format_results_tv_line():
     results = [SearchResult({
@@ -78,7 +78,7 @@ def test_format_results_tv_line():
         "first_air_date": "2008-01-20", "vote_average": 8.9,
     })]
 
-    assert format_results(results) == "1. [TV] Breaking Bad (2008) - Rating: 8.9"
+    assert format_results(results) == "1. [TV] Breaking Bad (2008) - Rating: 8.9 - id: 2"
 
 def test_format_results_numbers_multiple_results():
     results = [
@@ -89,8 +89,8 @@ def test_format_results_numbers_multiple_results():
     ]
 
     assert format_results(results) == (
-        "1. [Movie] A (2001) - Rating: 7.0\n"
-        "2. [TV] B (2002) - Rating: 8.0"
+        "1. [Movie] A (2001) - Rating: 7.0 - id: 1\n"
+        "2. [TV] B (2002) - Rating: 8.0 - id: 2"
     )
 
 def test_format_results_person_line_has_no_date_or_rating():
@@ -98,7 +98,7 @@ def test_format_results_person_line_has_no_date_or_rating():
         "id": 3, "media_type": "person", "name": "Tobey Maguire",
     })]
 
-    assert format_results(results) == "1. [Person] Tobey Maguire"
+    assert format_results(results) == "1. [Person] Tobey Maguire - id: 3"
 
 def test_format_results_missing_rating_shows_na():
     results = [SearchResult({
@@ -106,12 +106,12 @@ def test_format_results_missing_rating_shows_na():
         "release_date": "2020-01-01",
     })]
 
-    assert format_results(results) == "1. [Movie] Unknown Film (2020) - Rating: N/A"
+    assert format_results(results) == "1. [Movie] Unknown Film (2020) - Rating: N/A - id: 4"
 
 def test_run_search_formats_results():
     output = run_search(FakeClient(), "spiderman")
 
-    assert output == "1. [Movie] Spider-Man (2002) - Rating: 7.4"
+    assert output == "1. [Movie] Spider-Man (2002) - Rating: 7.4 - id: 1"
 
 def test_run_search_formats_no_results():
     output = run_search(FakeEmptyClient(), "spiderman")
@@ -124,10 +124,24 @@ def test_main_search_prints_results(capsys):
     captured = capsys.readouterr()
     assert "Spider-Man" in captured.out
     assert exit_code == 0
+def test_format_results_rounds_rating_to_one_decimal():
+    results = [SearchResult({"id": 1, "media_type": "movie", "title": "A",
+                             "release_date": "2001-01-01", "vote_average": 8.472})]
+
+    assert "Rating: 8.5" in format_results(results)
 
 def test_main_prints_friendly_error_and_returns_1(capsys):
     exit_code = main(["search", "spiderman"], client=RateLimitedClient())
 
     captured = capsys.readouterr()
     assert "30 seconds" in captured.err
+    assert exit_code == 1
+    assert captured.out == ""
+
+def test_main_usage_goes_to_stderr(capsys):
+    exit_code = main(["search"], client=FakeClient())
+
+    captured = capsys.readouterr()
+    assert "Usage" in captured.err
+    assert captured.out == ""
     assert exit_code == 1

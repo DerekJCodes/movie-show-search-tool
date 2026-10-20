@@ -19,4 +19,4 @@ class SearchResult:
 
     def __str__(self):
         rating = f"{self.vote_average:.1f}" if self.vote_average is not None else "N/A"
-        return f"{self.title} ({self.media_type}): - Rating: {rating}"
+        return f"{self.title} ({self.media_type}): - Rating: {rating} - id: {self.id}"

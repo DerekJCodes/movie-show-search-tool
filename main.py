@@ -20,7 +20,7 @@ def main(argv=None, client=None):
             return 1
         return 0
 
-    print("Usage: python main.py search <query>")
+    print("Usage: python main.py search <query>", file = sys.stderr)
     return 1
 
 if __name__ == "__main__":
