@@ -1,5 +1,5 @@
-from models.search_result import SearchResult
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
+from services.converter import convert_results
 
 def friendly_error(exc):
     if isinstance(exc, TMDBRateLimitError):
@@ -26,8 +26,13 @@ def format_line(number, r):
         line += f" ({r.date[:4]})"
 
     if r.media_type != "person":
-        rating = r.vote_average if r.vote_average is not None else "N/A"
+        if r.vote_average is not None:
+            rating = f"{r.vote_average:.1f}"
+        else:
+            rating = "N/A"
         line += f" - Rating: {rating}"
+
+    line += f" - id: {r.id}"
 
     return line
 
@@ -38,3 +43,8 @@ def format_results(results):
     for number, r in enumerate(results, start=1):
         lines.append(format_line(number, r))
     return "\n".join(lines)
+
+def run_search(client, query):
+    raw = client.search_multi(query)
+    results = convert_results(raw)
+    return format_results(results)
