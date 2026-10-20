@@ -3,7 +3,6 @@ class SearchResult:
         self.id = raw.get("id")
         self.media_type = raw.get("media_type")
         self.overview = raw.get("overview")
-        self.release_date = raw.get("release_date")
         self.poster_path = raw.get("poster_path")
         self.vote_average= raw.get("vote_average")
         self.genre_ids = raw.get("genre_ids")
