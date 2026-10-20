@@ -1,3 +1,4 @@
+from models.search_result import SearchResult
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
 
 def friendly_error(exc):
@@ -14,3 +15,26 @@ def friendly_error(exc):
     if isinstance(exc, TMDBConnectionError):
         return "Couldn't reach TMDB. Check your internet connection."
     raise exc
+
+TYPE_LABELS = {"movie": "Movie", "tv": "TV", "person": "Person"}
+
+def format_line(number, r):
+    label = TYPE_LABELS[r.media_type]
+    line = f"{number}. [{label}] {r.title}"
+
+    if r.date is not None:
+        line += f" ({r.date[:4]})"
+
+    if r.media_type != "person":
+        rating = r.vote_average if r.vote_average is not None else "N/A"
+        line += f" - Rating: {rating}"
+
+    return line
+
+def format_results(results):
+    if not results:
+        return "No results found."
+    lines = []
+    for number, r in enumerate(results, start=1):
+        lines.append(format_line(number, r))
+    return "\n".join(lines)
