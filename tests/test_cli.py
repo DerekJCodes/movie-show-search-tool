@@ -1,7 +1,9 @@
 import pytest
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
-from cli import friendly_error, format_results, run_search
+from cli import friendly_error, format_results, run_search, format_details
 from models.search_result import SearchResult
+from models.movie import Movie
+from models.credits import Credits, CastMember
 from main import main
 
 class FakeClient:
@@ -157,3 +159,36 @@ def test_format_results_zero_rating_shows_na():
                              "release_date": "2020-01-01", "vote_average": 0})]
 
     assert format_results(results) == "1. [Movie] Unrated (2020) - Rating: N/A - id: 6"
+
+def test_format_details_movie():
+    movie = Movie(id=557, title="Spider-Man", release_date="2002-05-01",
+                  vote_average=7.4, runtime=121,
+                  overview="A student gets spider powers.", poster_path=None)
+    credits = Credits(
+        cast=[CastMember(1, "Tobey Maguire", "Peter Parker", None),
+              CastMember(2, "Willem Dafoe", "Norman Osborn", None)],
+        crew=[],
+    )
+    assert format_details(movie, credits) == (
+            "Spider-Man (2002)\n"
+            "Rating: 7.4 | Runtime: 121 min\n"
+            "\n"
+            "A student gets spider powers.\n"
+            "\n"
+            "Top cast: Tobey Maguire, Willem Dafoe"
+        )
+
+def test_format_details_missing_fields():
+    movie = Movie(id=1, title="Obscure", release_date="",
+                  vote_average=0, runtime=0,
+                  overview="", poster_path=None)
+    movie_credits = Credits(cast=[], crew=[])
+
+    assert format_details(movie, movie_credits) == (
+        "Obscure \n"
+        "Rating: N/A | Runtime: N/A\n"
+        "\n"
+        "No overview available.\n"
+        "\n"
+        "Top cast: N/A"
+    )
