@@ -85,4 +85,4 @@ def run_details(client, media_type, tmdb_id):
 
     if details is None:
         return f"No {media_type} found with id {tmdb_id}."
-    return format_details(details, get_credits(get_credits(tmdb_id)))
+    return format_details(details, get_credits(tmdb_id))
