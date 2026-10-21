@@ -22,11 +22,11 @@ def format_line(number, r):
     label = TYPE_LABELS[r.media_type]
     line = f"{number}. [{label}] {r.title}"
 
-    if r.date is not None:
+    if r.date:
         line += f" ({r.date[:4]})"
 
     if r.media_type != "person":
-        if r.vote_average is not None:
+        if r.vote_average:
             rating = f"{r.vote_average:.1f}"
         else:
             rating = "N/A"

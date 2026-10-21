@@ -145,3 +145,15 @@ def test_main_usage_goes_to_stderr(capsys):
     assert "Usage" in captured.err
     assert captured.out == ""
     assert exit_code == 1
+
+def test_format_results_empty_date_has_no_parentheses():
+    results = [SearchResult({"id": 5, "media_type": "movie", "title": "Untitled",
+                             "release_date": "", "vote_average": 7.0})]
+
+    assert format_results(results) == "1. [Movie] Untitled - Rating: 7.0 - id: 5"
+
+def test_format_results_zero_rating_shows_na():
+    results = [SearchResult({"id": 6, "media_type": "movie", "title": "Unrated",
+                             "release_date": "2020-01-01", "vote_average": 0})]
+
+    assert format_results(results) == "1. [Movie] Unrated (2020) - Rating: N/A - id: 6"
