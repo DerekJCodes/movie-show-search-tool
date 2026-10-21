@@ -65,3 +65,10 @@ def format_details(item, movie_credits):
         f"Top cast: {top_cast}",
     ]
     return "\n".join(lines)
+
+def run_details(client, media_type, tmdb_id):
+    details = client.get_movie_details(tmdb_id)
+    if details is None:
+        return f"No {media_type} found with id {tmdb_id}."
+    movie_credits = client.get_movie_credits(tmdb_id)
+    return format_details(details, movie_credits)

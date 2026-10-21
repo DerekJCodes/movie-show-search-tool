@@ -1,6 +1,6 @@
 import pytest
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
-from cli import friendly_error, format_results, run_search, format_details
+from cli import friendly_error, format_results, run_search, format_details, run_details
 from models.search_result import SearchResult
 from models.movie import Movie
 from models.credits import Credits, CastMember
@@ -20,6 +20,21 @@ class FakeEmptyClient:
 class RateLimitedClient:
     def search_multi(self, query):
         raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+
+class FakeDetailsClient:
+    def get_movie_details(self, movie_id):
+        return Movie(id=movie_id, title="Spider-Man", release_date="2002-05-01",
+                     vote_average=7.4, runtime=121,
+                     overview="A student gets spider powers.", poster_path=None)
+    def get_movie_credits(self, movie_id):
+        return Credits(cast=[CastMember(1, "Tobey Maguire", "Peter Parker", None)],
+                       crew=[])
+
+class FakeNotFoundClient:
+    def get_movie_details(self, movie_id):
+        return None
+    def get_movie_credits(self, movie_id):
+        return None
 
 def test_rate_limit_message_includes_wait_time():
     err = TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
@@ -192,3 +207,14 @@ def test_format_details_missing_fields():
         "\n"
         "Top cast: N/A"
     )
+
+def test_run_details_movie():
+    output = run_details(FakeDetailsClient(), "movie", 557)
+
+    assert output.startswith("Spider-Man (2002)")
+    assert "Top cast: Tobey Maguire" in output
+
+def test_run_details_not_found():
+    output = run_details(FakeNotFoundClient(), "movie", 999)
+
+    assert output == "No movie found with id 999."
