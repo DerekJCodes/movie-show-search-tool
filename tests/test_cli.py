@@ -173,6 +173,10 @@ def test_main_usage_goes_to_stderr(capsys):
     assert "Usage" in captured.err
     assert captured.out == ""
     assert exit_code == 1
+    assert "search" in captured.err
+    assert "details" in captured.err
+    assert captured.out == ""
+    assert exit_code == 1
 
 def test_format_results_empty_date_has_no_parentheses():
     results = [SearchResult({"id": 5, "media_type": "movie", "title": "Untitled",
@@ -257,3 +261,18 @@ def test_run_details_tv():
 def test_run_details_unknown_media_type_raises():
     with pytest.raises(ValueError):
         run_details(FakeDetailsClient(), "person", 1)
+
+def test_main_details_prints_movie(capsys):
+    exit_code = main(["details", "movie", "557"], client=FakeDetailsClient())
+
+    captured = capsys.readouterr()
+    assert "Spider-Man (2002)" in captured.out
+    assert exit_code == 0
+
+def test_main_details_non_numeric_id_prints_error(capsys):
+    exit_code = main(["details", "movie", "abc"], client=FakeDetailsClient())
+
+    captured = capsys.readouterr()
+    assert "id" in captured.err.lower()
+    assert captured.out == ""
+    assert exit_code == 1
