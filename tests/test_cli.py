@@ -1,7 +1,10 @@
 import pytest
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
-from cli import friendly_error, format_results, run_search
+from cli import friendly_error, format_results, run_search, format_details, run_details
 from models.search_result import SearchResult
+from models.movie import Movie
+from models.tv_show import TVShow
+from models.credits import Credits, CastMember
 from main import main
 
 class FakeClient:
@@ -18,6 +21,31 @@ class FakeEmptyClient:
 class RateLimitedClient:
     def search_multi(self, query):
         raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+
+class FakeDetailsClient:
+    def get_movie_details(self, movie_id):
+        return Movie(id=movie_id, title="Spider-Man", release_date="2002-05-01",
+                     vote_average=7.4, runtime=121,
+                     overview="A student gets spider powers.", poster_path=None)
+    def get_movie_credits(self, movie_id):
+        return Credits(cast=[CastMember(1, "Tobey Maguire", "Peter Parker", None)],
+                       crew=[])
+
+class FakeNotFoundClient:
+    def get_movie_details(self, movie_id):
+        return None
+    def get_movie_credits(self, movie_id):
+        return None
+
+class FakeTVClient:
+    def get_tv_details(self, tv_id):
+        return TVShow(id=tv_id, name="Breaking Bad", first_air_date="2008-01-20",
+                      vote_average=9.0, overview="A teacher turns to crime.",
+                      poster_path=None, number_of_seasons=5, number_of_episodes=62)
+
+    def get_tv_credits(self, tv_id):
+        return Credits(cast=[CastMember(1, "Bryan Cranston", "Walter White", None)],
+                       crew=[])
 
 def test_rate_limit_message_includes_wait_time():
     err = TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
@@ -145,6 +173,10 @@ def test_main_usage_goes_to_stderr(capsys):
     assert "Usage" in captured.err
     assert captured.out == ""
     assert exit_code == 1
+    assert "search" in captured.err
+    assert "details" in captured.err
+    assert captured.out == ""
+    assert exit_code == 1
 
 def test_format_results_empty_date_has_no_parentheses():
     results = [SearchResult({"id": 5, "media_type": "movie", "title": "Untitled",
@@ -157,3 +189,90 @@ def test_format_results_zero_rating_shows_na():
                              "release_date": "2020-01-01", "vote_average": 0})]
 
     assert format_results(results) == "1. [Movie] Unrated (2020) - Rating: N/A - id: 6"
+
+def test_format_details_movie():
+    movie = Movie(id=557, title="Spider-Man", release_date="2002-05-01",
+                  vote_average=7.4, runtime=121,
+                  overview="A student gets spider powers.", poster_path=None)
+    credits = Credits(
+        cast=[CastMember(1, "Tobey Maguire", "Peter Parker", None),
+              CastMember(2, "Willem Dafoe", "Norman Osborn", None)],
+        crew=[],
+    )
+    assert format_details(movie, credits) == (
+            "Spider-Man (2002)\n"
+            "Rating: 7.4 | Runtime: 121 min\n"
+            "\n"
+            "A student gets spider powers.\n"
+            "\n"
+            "Top cast: Tobey Maguire, Willem Dafoe"
+        )
+
+def test_format_details_missing_fields():
+    movie = Movie(id=1, title="Obscure", release_date="",
+                  vote_average=0, runtime=0,
+                  overview="", poster_path=None)
+    movie_credits = Credits(cast=[], crew=[])
+
+    assert format_details(movie, movie_credits) == (
+        "Obscure\n"
+        "Rating: N/A | Runtime: N/A\n"
+        "\n"
+        "No overview available.\n"
+        "\n"
+        "Top cast: N/A"
+    )
+
+def test_run_details_movie():
+    output = run_details(FakeDetailsClient(), "movie", 557)
+
+    assert output.startswith("Spider-Man (2002)")
+    assert "Top cast: Tobey Maguire" in output
+
+def test_run_details_not_found():
+    output = run_details(FakeNotFoundClient(), "movie", 999)
+
+    assert output == "No movie found with id 999."
+
+def test_format_details_tv():
+    show = TVShow(id=1396, name="Breaking Bad", first_air_date="2008-01-20",
+                  vote_average=9.0, overview="A teacher turns to crime.",
+                  poster_path=None, number_of_seasons=5, number_of_episodes=62)
+    movie_credits = Credits(
+        cast=[CastMember(1, "Bryan Cranston", "Walter White", None)],
+        crew=[],
+    )
+
+    assert format_details(show, movie_credits) == (
+        "Breaking Bad (2008)\n"
+        "Rating: 9.0 | 5 seasons, 62 episodes\n"
+        "\n"
+        "A teacher turns to crime.\n"
+        "\n"
+        "Top cast: Bryan Cranston"
+    )
+
+def test_run_details_tv():
+    output = run_details(FakeTVClient(), "tv", 1396)
+
+    assert output.startswith("Breaking Bad (2008)")
+    assert "5 seasons, 62 episodes" in output
+
+def test_run_details_unknown_media_type_raises():
+    with pytest.raises(ValueError):
+        run_details(FakeDetailsClient(), "person", 1)
+
+def test_main_details_prints_movie(capsys):
+    exit_code = main(["details", "movie", "557"], client=FakeDetailsClient())
+
+    captured = capsys.readouterr()
+    assert "Spider-Man (2002)" in captured.out
+    assert exit_code == 0
+
+def test_main_details_non_numeric_id_prints_error(capsys):
+    exit_code = main(["details", "movie", "abc"], client=FakeDetailsClient())
+
+    captured = capsys.readouterr()
+    assert "id" in captured.err.lower()
+    assert captured.out == ""
+    assert exit_code == 1
