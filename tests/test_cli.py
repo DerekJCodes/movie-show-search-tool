@@ -37,6 +37,16 @@ class FakeNotFoundClient:
     def get_movie_credits(self, movie_id):
         return None
 
+class FakeTVClient:
+    def get_tv_details(self, tv_id):
+        return TVShow(id=tv_id, name="Breaking Bad", first_air_date="2008-01-20",
+                      vote_average=9.0, overview="A teacher turns to crime.",
+                      poster_path=None, number_of_seasons=5, number_of_episodes=62)
+
+    def get_tv_credits(self, tv_id):
+        return Credits(cast=[CastMember(1, "Bryan Cranston", "Walter White", None)],
+                       crew=[])
+
 def test_rate_limit_message_includes_wait_time():
     err = TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
 
@@ -237,3 +247,13 @@ def test_format_details_tv():
         "\n"
         "Top cast: Bryan Cranston"
     )
+
+def test_run_details_tv():
+    output = run_details(FakeTVClient(), "tv", 1396)
+
+    assert output.startswith("Breaking Bad (2008)")
+    assert "5 seasons, 62 episodes" in output
+
+def test_run_details_unknown_media_type_raises():
+    with pytest.raises(ValueError):
+        run_details(FakeDetailsClient(), "person", 1)
