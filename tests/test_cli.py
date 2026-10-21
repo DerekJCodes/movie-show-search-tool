@@ -3,6 +3,7 @@ from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerErr
 from cli import friendly_error, format_results, run_search, format_details, run_details
 from models.search_result import SearchResult
 from models.movie import Movie
+from models.tv_show import TVShow
 from models.credits import Credits, CastMember
 from main import main
 
@@ -200,7 +201,7 @@ def test_format_details_missing_fields():
     movie_credits = Credits(cast=[], crew=[])
 
     assert format_details(movie, movie_credits) == (
-        "Obscure \n"
+        "Obscure\n"
         "Rating: N/A | Runtime: N/A\n"
         "\n"
         "No overview available.\n"
@@ -218,3 +219,21 @@ def test_run_details_not_found():
     output = run_details(FakeNotFoundClient(), "movie", 999)
 
     assert output == "No movie found with id 999."
+
+def test_format_details_tv():
+    show = TVShow(id=1396, name="Breaking Bad", first_air_date="2008-01-20",
+                  vote_average=9.0, overview="A teacher turns to crime.",
+                  poster_path=None, number_of_seasons=5, number_of_episodes=62)
+    movie_credits = Credits(
+        cast=[CastMember(1, "Bryan Cranston", "Walter White", None)],
+        crew=[],
+    )
+
+    assert format_details(show, movie_credits) == (
+        "Breaking Bad (2008)\n"
+        "Rating: 9.0 | 5 seasons, 62 episodes\n"
+        "\n"
+        "A teacher turns to crime.\n"
+        "\n"
+        "Top cast: Bryan Cranston"
+    )
