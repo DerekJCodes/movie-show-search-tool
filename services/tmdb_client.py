@@ -1,10 +1,13 @@
 import os
 import requests
+import logging
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
 from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError, TMDBConnectionError
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.themoviedb.org/3"
 def _error_message(response, default):
@@ -69,6 +72,7 @@ class TMDBClient:
         #Raise for all other error codes (for now)
         response.raise_for_status()
 
+        logger.info("TMDB %s -> %s", endpoint, response.status_code)
         return response.json()
 
     def search_multi(self, query: str):
