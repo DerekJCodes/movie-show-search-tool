@@ -1,4 +1,5 @@
 import pytest
+import sys
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
 from cli import friendly_error, format_results, run_search, format_details, run_details
 from models.search_result import SearchResult
@@ -288,3 +289,11 @@ def test_main_details_prints_friendly_error_and_returns_1(capsys):
     assert "30 seconds" in captured.err
     assert captured.out == ""
     assert exit_code == 1
+
+def test_main_reads_sys_argv_when_no_argv_given(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["main.py"])
+
+    exit_code = main(client=FakeClient())
+
+    assert exit_code == 1
+    assert "Usage" in capsys.readouterr().err
