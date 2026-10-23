@@ -17,5 +17,3 @@ class Movie:
         self.poster_path = poster_path
         self.media_type = "movie"
     #Magic method of string to make data more readable
-    def __str__(self):
-        return f"{self.title} ({self.release_date}) - Rating: {self.vote_average:.1f}"

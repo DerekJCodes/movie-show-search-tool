@@ -17,6 +17,3 @@ class TVShow:
         self.number_of_seasons = number_of_seasons
         self.number_of_episodes = number_of_episodes
         self.media_type = "tv"
-
-    def __str__(self):
-        return f"{self.name} - {self.first_air_date} - Rating: {self.vote_average:.1f}"
