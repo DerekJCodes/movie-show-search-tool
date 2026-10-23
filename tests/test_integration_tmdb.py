@@ -69,3 +69,24 @@ def test_real_movie_details_and_credits():
     assert len(movie_credits.cast) > 0
     assert isinstance(movie_credits.cast[0].name, str) and movie_credits.cast[0].name
     assert len(movie_credits.crew) > 0
+
+@pytest.mark.integration
+def test_real_tv_details_and_credits():
+    client = TMDBClient()
+
+    try:
+        show = client.get_tv_details(1396)
+        show_credits = client.get_tv_credits(1396)
+    except TMDBConnectionError:
+        pytest.skip("TMDB unreachable, cannot run this integration test")
+
+    assert show is not None
+    assert show.id == 1396
+    assert isinstance(show.name, str) and show.name
+    assert isinstance(show.number_of_seasons, int) and show.number_of_seasons > 0
+    assert isinstance(show.number_of_episodes, int) and show.number_of_episodes > 0
+    assert show.media_type == "tv"
+
+    assert show_credits is not None
+    assert len(show_credits.cast) > 0
+    assert isinstance(show_credits.cast[0].name, str) and show_credits.cast[0].name
