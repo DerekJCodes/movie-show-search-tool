@@ -21,6 +21,10 @@ class FakeEmptyClient:
 class RateLimitedClient:
     def search_multi(self, query):
         raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+    def get_movie_details(self, movie_id):
+        raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+    def get_tv_details(self, tv_id):
+        raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
 
 class FakeDetailsClient:
     def get_movie_details(self, movie_id):
@@ -274,5 +278,13 @@ def test_main_details_non_numeric_id_prints_error(capsys):
 
     captured = capsys.readouterr()
     assert "id" in captured.err.lower()
+    assert captured.out == ""
+    assert exit_code == 1
+
+def test_main_details_prints_friendly_error_and_returns_1(capsys):
+    exit_code = main(["details", "movie", "557"], client=RateLimitedClient())
+
+    captured = capsys.readouterr()
+    assert "30 seconds" in captured.err
     assert captured.out == ""
     assert exit_code == 1

@@ -225,3 +225,18 @@ def test_connection_failure_raises_connection_error(monkeypatch, exc_type):
     assert "FAKE_API_KEY" not in str(exc_info.value)
     assert "could not reach" in str(exc_info.value).lower()
     assert exc_info.value.__suppress_context__ is True
+
+def test_server_error_with_non_json_body_uses_default_message(monkeypatch, tmdb_client):
+    def mock_get(url, params, **kwargs):
+        class FakeResponse:
+            status_code = 502
+            def json(self): raise ValueError("no json")
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.get", mock_get)
+
+    with pytest.raises(TMDBServerError) as exc_info:
+        tmdb_client.get_movie_details(557)
+
+    assert exc_info.value.status_code == 502
+    assert "server error" in str(exc_info.value).lower()
