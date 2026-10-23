@@ -1,6 +1,7 @@
 import pytest
 import logging
 
+from services.exceptions import TMDBRateLimitError
 from services.tmdb_client import TMDBClient
 
 
@@ -36,4 +37,18 @@ def test_api_key_never_appears_in_logs(monkeypatch,caplog, tmdb_client):
     tmdb_client.search_multi("spiderman")
 
     assert "SECRET123" not in caplog.text
+
+def test_rate_limit_logs_warning(monkeypatch, caplog, tmdb_client):
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: fake_response(429))
+    caplog.set_level(logging.DEBUG)
+
+    with pytest.raises(TMDBRateLimitError):
+        tmdb_client.search_multi("spiderman")
+
+    records = [r for r in caplog.records if r.levelname == "WARNING"]
+    assert len(records) == 1
+    assert "429" in caplog.records[0].getMessage()
+    assert "search/multi" in caplog.records[0].getMessage()
+    assert "SECRET123" not in caplog.text
+
 

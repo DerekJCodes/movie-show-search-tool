@@ -63,6 +63,8 @@ class TMDBClient:
 
         #If TMDB is having rate-limiting error (429)
         if response.status_code == 429:
+            retry_after = _retry_after_seconds(response)
+            logger.warning("TMDB %s -> 429 rate limited (retry_after=%s)", endpoint, retry_after)
             raise TMDBRateLimitError(
                 _error_message(response, "Rate limit exceeded, try again later"),
                 status_code=429,
