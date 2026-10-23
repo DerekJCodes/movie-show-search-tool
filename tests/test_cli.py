@@ -1,4 +1,5 @@
 import pytest
+import sys
 from services.exceptions import TMDBRateLimitError, TMDBAuthError, TMDBServerError, TMDBConnectionError
 from cli import friendly_error, format_results, run_search, format_details, run_details
 from models.search_result import SearchResult
@@ -20,6 +21,10 @@ class FakeEmptyClient:
 
 class RateLimitedClient:
     def search_multi(self, query):
+        raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+    def get_movie_details(self, movie_id):
+        raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
+    def get_tv_details(self, tv_id):
         raise TMDBRateLimitError("rate limit", status_code=429, retry_after=30)
 
 class FakeDetailsClient:
@@ -276,3 +281,19 @@ def test_main_details_non_numeric_id_prints_error(capsys):
     assert "id" in captured.err.lower()
     assert captured.out == ""
     assert exit_code == 1
+
+def test_main_details_prints_friendly_error_and_returns_1(capsys):
+    exit_code = main(["details", "movie", "557"], client=RateLimitedClient())
+
+    captured = capsys.readouterr()
+    assert "30 seconds" in captured.err
+    assert captured.out == ""
+    assert exit_code == 1
+
+def test_main_reads_sys_argv_when_no_argv_given(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["main.py"])
+
+    exit_code = main(client=FakeClient())
+
+    assert exit_code == 1
+    assert "Usage" in capsys.readouterr().err
