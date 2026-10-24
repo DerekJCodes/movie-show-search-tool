@@ -49,6 +49,7 @@ class TMDBClient:
 
         #If API key is invalid/unauthorized
         if response.status_code == 401:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
             raise TMDBAuthError(
                 _error_message(response, "Invalid/unauthorized API key"),
                 status_code=401
@@ -56,6 +57,7 @@ class TMDBClient:
 
         #If TMDB is having server-side errors (any 5xx)
         if response.status_code >= 500:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
             raise TMDBServerError(
                 _error_message(response, "TMDB server error"),
                 status_code=response.status_code

@@ -1,7 +1,7 @@
 import pytest
 import logging
 
-from services.exceptions import TMDBRateLimitError
+from services.exceptions import TMDBRateLimitError, TMDBError
 from services.tmdb_client import TMDBClient
 
 
@@ -49,6 +49,19 @@ def test_rate_limit_logs_warning(monkeypatch, caplog, tmdb_client):
     assert len(records) == 1
     assert "429" in caplog.records[0].getMessage()
     assert "search/multi" in caplog.records[0].getMessage()
+    assert "SECRET123" not in caplog.text
+
+@pytest.mark.parametrize("status", [401, 500, 503])
+def test_error_responses_log_error(monkeypatch, caplog, tmdb_client, status):
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: fake_response(status))
+    caplog.set_level(logging.DEBUG)
+
+    with pytest.raises(TMDBError):
+        tmdb_client.search_multi("spiderman")
+
+    records = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(records) == 1
+    assert str(status) in records[0].getMessage()
     assert "SECRET123" not in caplog.text
 
 
