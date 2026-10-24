@@ -38,7 +38,8 @@ class TMDBClient:
 
         try:
             response = requests.get(url, params=params, timeout=10)
-        except (requests.Timeout, requests.ConnectionError):
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            logger.error("TMDB %s -> %s", endpoint, type(exc).__name__)
             raise TMDBConnectionError(
                 "Could not reach TMDB (timeout/network error)"
             ) from None

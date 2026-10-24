@@ -1,7 +1,8 @@
 import pytest
 import logging
+import requests
 
-from services.exceptions import TMDBRateLimitError, TMDBError
+from services.exceptions import TMDBRateLimitError, TMDBError, TMDBConnectionError
 from services.tmdb_client import TMDBClient
 
 
@@ -64,4 +65,18 @@ def test_error_responses_log_error(monkeypatch, caplog, tmdb_client, status):
     assert str(status) in records[0].getMessage()
     assert "SECRET123" not in caplog.text
 
+@pytest.mark.parametrize("error", [requests.Timeout, requests.ConnectionError])
+def test_connection_failure_logs_error(monkeypatch, caplog, tmdb_client, error):
+    def fake_get(*args, **kwargs):
+        raise error("Max retries exceeded with url: /3/search/multi?api_key=SECRET123&query=spiderman")
 
+    monkeypatch.setattr("requests.get", fake_get)
+    caplog.set_level(logging.DEBUG)
+
+    with pytest.raises(TMDBConnectionError):
+        tmdb_client.search_multi("spiderman")
+
+    records = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(records) == 1
+    assert "search/multi" in records[0].getMessage()
+    assert "SECRET123" not in caplog.text
