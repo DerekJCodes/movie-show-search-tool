@@ -80,3 +80,16 @@ def test_connection_failure_logs_error(monkeypatch, caplog, tmdb_client, error):
     assert len(records) == 1
     assert "search/multi" in records[0].getMessage()
     assert "SECRET123" not in caplog.text
+
+def test_not_found_logs_info_not_warning(monkeypatch, caplog, tmdb_client):
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: fake_response(404))
+    caplog.set_level(logging.DEBUG)
+
+    result = tmdb_client.get_movie_details(99999999)
+
+    assert result is None
+    info_records = [r for r in caplog.records if r.levelname =="INFO"]
+    assert len(info_records) == 1
+    assert "404" in info_records[0].getMessage()
+    assert "movie/99999999" in info_records[0].getMessage()
+    assert not [r for r in caplog.records if r.levelname in ("WARNING", "ERROR")]

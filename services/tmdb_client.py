@@ -46,6 +46,7 @@ class TMDBClient:
 
         #If handle "not found"
         if response.status_code == 404:
+            logger.info("TMDB %s -> 404 Not Found", endpoint)
             return None
 
         #If API key is invalid/unauthorized
