@@ -1,10 +1,13 @@
 import os
 import requests
+import logging
 from dotenv import load_dotenv
 from services.parsers import parse_credits, parse_movie, parse_show
 from services.exceptions import TMDBAuthError, TMDBServerError, TMDBRateLimitError, TMDBConnectionError
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.themoviedb.org/3"
 def _error_message(response, default):
@@ -35,17 +38,20 @@ class TMDBClient:
 
         try:
             response = requests.get(url, params=params, timeout=10)
-        except (requests.Timeout, requests.ConnectionError):
+        except (requests.Timeout, requests.ConnectionError) as exc:
+            logger.error("TMDB %s -> %s", endpoint, type(exc).__name__)
             raise TMDBConnectionError(
                 "Could not reach TMDB (timeout/network error)"
             ) from None
 
         #If handle "not found"
         if response.status_code == 404:
+            logger.info("TMDB %s -> 404 Not Found", endpoint)
             return None
 
         #If API key is invalid/unauthorized
         if response.status_code == 401:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
             raise TMDBAuthError(
                 _error_message(response, "Invalid/unauthorized API key"),
                 status_code=401
@@ -53,6 +59,7 @@ class TMDBClient:
 
         #If TMDB is having server-side errors (any 5xx)
         if response.status_code >= 500:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
             raise TMDBServerError(
                 _error_message(response, "TMDB server error"),
                 status_code=response.status_code
@@ -60,15 +67,20 @@ class TMDBClient:
 
         #If TMDB is having rate-limiting error (429)
         if response.status_code == 429:
+            retry_after = _retry_after_seconds(response)
+            logger.warning("TMDB %s -> 429 rate limited (retry_after=%s)", endpoint, retry_after)
             raise TMDBRateLimitError(
                 _error_message(response, "Rate limit exceeded, try again later"),
                 status_code=429,
                 retry_after = _retry_after_seconds(response)
             )
 
-        #Raise for all other error codes (for now)
+        #Raise for any other 4xx code errors. Logs response then lets response raise HTTPError
+        if response.status_code >= 400:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
         response.raise_for_status()
 
+        logger.info("TMDB %s -> %s", endpoint, response.status_code)
         return response.json()
 
     def search_multi(self, query: str):
