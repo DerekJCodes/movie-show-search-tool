@@ -17,7 +17,8 @@ def fake_response(status_code=200):
         def json(self):
             return {"results": []}
         def raise_for_status(self):
-            pass
+            if self.status_code >= 400:
+                raise requests.HTTPError(f"{self.status_code} error")
     FakeResponse.status_code = status_code
     return FakeResponse()
 
@@ -93,3 +94,16 @@ def test_not_found_logs_info_not_warning(monkeypatch, caplog, tmdb_client):
     assert "404" in info_records[0].getMessage()
     assert "movie/99999999" in info_records[0].getMessage()
     assert not [r for r in caplog.records if r.levelname in ("WARNING", "ERROR")]
+
+@pytest.mark.parametrize("status", [400, 403, 422])
+def test_other_client_errors_are_logged(monkeypatch,caplog, tmdb_client, status ):
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: fake_response(status))
+    caplog.set_level(logging.DEBUG)
+
+    with pytest.raises(requests.HTTPError):
+        tmdb_client.search_multi("spiderman")
+
+    records = [r for r in caplog.records if r.levelname == "ERROR"]
+    assert len(records) == 1
+    assert str(status) in records[0].getMessage()
+    assert "SECRET123" not in caplog.text

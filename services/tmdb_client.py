@@ -75,7 +75,9 @@ class TMDBClient:
                 retry_after = _retry_after_seconds(response)
             )
 
-        #Raise for all other error codes (for now)
+        #Raise for any other 4xx code errors. Logs response then lets response raise HTTPError
+        if response.status_code >= 400:
+            logger.error("TMDB %s -> %s", endpoint, response.status_code)
         response.raise_for_status()
 
         logger.info("TMDB %s -> %s", endpoint, response.status_code)
