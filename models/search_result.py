@@ -1,4 +1,10 @@
 class SearchResult:
+    """One item from a search/multi response: a movie/TV show or person.
+
+    TMDB names the fields differently for each type (movies use title and
+    release_date, TV uses name and first_air_date, people have only 'name'),
+    so they are normalized here into .title and .date. People get date=None.
+    """
     def __init__(self, raw):
         self.id = raw.get("id")
         self.media_type = raw.get("media_type")

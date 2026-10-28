@@ -1,5 +1,5 @@
-from models.credits import CastMember, CrewMember, Credits
-from services.parsers import parse_credits, sample_json
+from models.credits import CastMember, CrewMember
+from services.parsers import parse_credits
 
 
 def test_parse_credits():
