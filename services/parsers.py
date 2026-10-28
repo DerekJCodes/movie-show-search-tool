@@ -2,27 +2,11 @@ from models.movie import Movie
 from models.credits import CastMember, CrewMember, Credits
 from models.tv_show import TVShow
 
-sample_json = {
-    "cast": [
-        {
-            "id": 113,
-            "name": "Tobey Maguire",
-            "character": "Peter Parker / Spider-Man",
-            "profile_path": "/path.jpg"
-        }
-    ],
-    "crew": [
-        {
-            "id": 7624,
-            "name": "Sam Raimi",
-            "job": "Director",
-            "department": "Directing",
-            "profile_path": "/path.jpg"
-        }
-    ]
-}
-
+#Every parser below reads fields with .get() and not [], because TMDB leaves some out (an
+#unreleased movie has no runtime, for example). A missing field becomes None,
+#and cli.py turns None into "N/A" when it prints.
 def parse_movie(json_data):
+    """Build a Movie from a TMDB /movie/{id} response. Missing fields become None."""
     return Movie(
         id=json_data.get("id"),
         title=json_data.get("title"),
@@ -34,6 +18,7 @@ def parse_movie(json_data):
     )
 
 def parse_show(json_data):
+    """Build a TVShow from a TMDB /tv/{id} response. Missing fields become None."""
     return TVShow(
         id = json_data.get("id"),
         name=json_data.get("name"),
@@ -46,6 +31,11 @@ def parse_show(json_data):
     )
 
 def parse_credits(json_data):
+    """Build a Credits object from a TMDB credits response.
+
+    Missing "cast" or "crew" lists become empty lists. TMDB lists cast in billing
+    order, which is why the CLI can take the first five as "top cast"
+    """
     cast_list = []
     crew_list = []
 
