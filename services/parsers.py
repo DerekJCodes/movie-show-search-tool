@@ -2,26 +2,6 @@ from models.movie import Movie
 from models.credits import CastMember, CrewMember, Credits
 from models.tv_show import TVShow
 
-sample_json = {
-    "cast": [
-        {
-            "id": 113,
-            "name": "Tobey Maguire",
-            "character": "Peter Parker / Spider-Man",
-            "profile_path": "/path.jpg"
-        }
-    ],
-    "crew": [
-        {
-            "id": 7624,
-            "name": "Sam Raimi",
-            "job": "Director",
-            "department": "Directing",
-            "profile_path": "/path.jpg"
-        }
-    ]
-}
-
 #Every parser below reads fields with .get() and not [], because TMDB leaves some out (an
 #unreleased movie has no runtime, for example). A missing field becomes None,
 #and cli.py turns None into "N/A" when it prints.
