@@ -2,6 +2,19 @@ import logging
 import pytest
 from logging_config import configure_logging
 
+@pytest.fixture(autouse=True)
+def clean_root_logger():
+    root = logging.getLogger()
+    handlers_before = root.handlers[:]
+    level_before = root.level
+    yield
+    for h in root.handlers[:]:
+        if h not in handlers_before:
+            root.removeHandler(h)
+            h.close()
+    root.setLevel(level_before)
+    logging.getLogger("urllib3").setLevel(logging.NOTSET)
+
 def test_configure_logging_writes_to_file_not_terminal(tmp_path, capsys):
     log_file = tmp_path / "test.log"
     configure_logging(log_file=str(log_file), level="INFO")

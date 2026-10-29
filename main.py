@@ -4,6 +4,7 @@ import sys
 from services.exceptions import TMDBError
 from services.tmdb_client import TMDBClient
 from cli import run_search, friendly_error, run_details
+from logging_config import configure_logging
 
 
 def main(argv=None, client=None, media_type=None, tmdb_id=None):
@@ -45,4 +46,5 @@ def main(argv=None, client=None, media_type=None, tmdb_id=None):
     return 1
 
 if __name__ == "__main__":
+    configure_logging()
     raise SystemExit(main())
