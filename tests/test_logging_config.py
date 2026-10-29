@@ -31,3 +31,12 @@ def test_default_level_hides_debug(tmp_path, monkeypatch):
     logging.getLogger("services.test").debug("detail")
 
     assert "detail" not in log_file.read_text()
+
+def test_log_file_comes_from_environment(tmp_path, monkeypatch):
+    log_file = tmp_path / "from_env.log"
+    monkeypatch.setenv("LOG_FILE", str(log_file))
+    configure_logging()
+
+    logging.getLogger("services.test").info("hello")
+
+    assert "hello" in log_file.read_text()

@@ -4,8 +4,9 @@ from logging.handlers import RotatingFileHandler
 
 DEFAULT_LOGGING_FILE = "reelfinder.log"
 
-def configure_logging(log_file=DEFAULT_LOGGING_FILE, level=None):
+def configure_logging(log_file=None, level=None):
     level_name = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
+    log_file = log_file or os.getenv("LOG_FILE", DEFAULT_LOGGING_FILE)
 
     handler = RotatingFileHandler(
         log_file, maxBytes=1_000_000, backupCount=3, encoding="utf-8"
