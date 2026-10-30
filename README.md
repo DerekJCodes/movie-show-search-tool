@@ -109,3 +109,4 @@ media data (title, rating, release date/first air date, etc.)
 
 ## Credits
 <i>This product uses the TMDB API but is not endorsed or certified by TMDB.</i>
+<img src="https://www.themoviedb.org/assets/v4/logos/v2/blue_long_2-9665a76b1ae401a510ec1e0ca40ddcb3b0cfe45f1d51b77a308fea0845885648.svg">
