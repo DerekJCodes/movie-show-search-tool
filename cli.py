@@ -70,7 +70,8 @@ def format_details(item, movie_credits):
     """Format a movie or TV show's details and top 5 cast as text."""
     if item.media_type == "tv":
         title, date = item.name, item.first_air_date
-        info = f"{item.number_of_seasons} seasons, {item.number_of_episodes} episodes"
+        info = (f"{item.number_of_seasons} {'season' if item.number_of_seasons == 1 else 'seasons'}, "
+                f"{item.number_of_episodes} {'episode' if item.number_of_episodes == 1 else 'episodes'}")
     else:
         title, date = item.title, item.release_date
         runtime = f"{item.runtime} min" if item.runtime else "N/A"

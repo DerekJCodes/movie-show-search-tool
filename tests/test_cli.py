@@ -297,3 +297,29 @@ def test_main_reads_sys_argv_when_no_argv_given(monkeypatch, capsys):
 
     assert exit_code == 1
     assert "Usage" in capsys.readouterr().err
+
+@pytest.mark.parametrize("number_of_seasons, number_of_episodes, expected", [
+    (1 ,1, "1 season, 1 episode"),
+    (2 , 2,"2 seasons, 2 episodes"),
+    (1, 62, "1 season, 62 episodes"),
+    (2, 1, "2 seasons, 1 episode"),
+    (2,62, "2 seasons, 62 episodes"),
+])
+def test_tv_details_plural_seasons_and_episodes(number_of_seasons, number_of_episodes, expected):
+    show = TVShow(id=1396, name="Breaking Bad",first_air_date="2008-01-20",
+                  vote_average=9.0, overview="A teacher turns to crime.",
+                  poster_path=None, number_of_seasons=number_of_seasons, number_of_episodes=number_of_episodes)
+
+    movie_credits = Credits(
+            cast=[CastMember(1, "Bryan Cranston", "Walter White", None)],
+            crew=[],
+        )
+
+    assert format_details(show, movie_credits) == (
+        "Breaking Bad (2008)\n"
+        f"Rating: 9.0 | {expected}\n"
+        "\n"
+        "A teacher turns to crime.\n"
+        "\n"
+        "Top cast: Bryan Cranston"
+    )
