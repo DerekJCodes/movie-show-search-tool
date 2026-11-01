@@ -1,6 +1,7 @@
 from app import create_app
+from models.movie import Movie
 from models.tv_show import TVShow
-from services.tmdb_client import TMDBClient
+from models.credits import Credits, CastMember
 
 class FakeWebClient:
     def search_multi(self, query):
@@ -12,15 +13,26 @@ class FakeWebClient:
             {"id": 3, "media_type": "person", "name": "Gamma Person"},
         ]}
 
-class FakeTVClient:
-    def get_tv_details(self, tv_id):
-        return TVShow(id=tv_id, name="Breaking Bad", first_air_date="2008-01-20",
-                      vote_average=9.0, overview="A teacher turns to crime.",
-                      poster_path=None, number_of_seasons=5, number_of_episodes=62)
-
 class FailingClient:
     def search_multi(self, query):
         raise AssertionError("home page must not call TMDB")
+
+class FakeDetailsWebClient:
+    def get_movie_details(self, movie_id):
+        return Movie(id=movie_id, title="Gamma Film", release_date="2001-03-04",
+                     vote_average=7.4, runtime=121,
+                     overview="A distinctive overview.", poster_path=None)
+
+    def get_movie_credits(self, movie_id):
+        return Credits(cast=[CastMember(1, "Zed Actor", "Hero Role", None)], crew=[])
+
+    def get_tv_details(self, tv_id):
+        return TVShow(id=tv_id, name="Delta Series", first_air_date="2010-05-06",
+                      vote_average=8.8, overview="Another distinctive overview.",
+                      poster_path=None, number_of_seasons=1, number_of_episodes=16)
+
+    def get_tv_credits(self, tv_id):
+        return Credits(cast=[CastMember(2, "Yara Actress", "Lead Role", None)], crew=[])
 
 def test_search_page_lists_results():
     app = create_app(client=FakeWebClient())
@@ -60,3 +72,29 @@ def test_home_page_shows_search_box_without_calling_tmdb():
     assert response.status_code == 200
     assert 'data-testid="search-input"' in response.get_data(as_text=True)
     assert "Find any movie or TV show" in body
+
+def test_movie_details_page_shows_info_and_cast():
+    app = create_app(client=FakeDetailsWebClient())
+
+    response = app.test_client().get("/details/movie/557")
+
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Gamma Film" in body
+    assert "2001" in body
+    assert "121 min" in body
+    assert "A distinctive overview." in body
+    assert "Zed Actor" in body
+    assert "Hero Role" in body
+
+
+def test_tv_details_page_shows_seasons_and_cast():
+    app = create_app(client=FakeDetailsWebClient())
+
+    response = app.test_client().get("/details/tv/219246")
+
+    assert response.status_code == 200
+    body = response.get_data(as_text=True)
+    assert "Delta Series" in body
+    assert "1 season, 16 episodes" in body
+    assert "Yara Actress" in body
