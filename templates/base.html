@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}ReelFinder{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="site-header">
+  <a class="logo" href="/">REELFINDER</a>
+  <form class="search-form" action="/search" method="get">
+    <label class="sr-only" for="q">Search movies and TV shows</label>
+    <input id="q" name="q" type="search" value="{{ query or '' }}" data-testid="search-input">
+    <button type="submit">Search</button>
+  </form>
+</header>
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  This product uses the TMDB API but is not endorsed or certified by TMDB.
+</footer>
+</body>
+</html>

@@ -1,14 +1,7 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ReelFinder{% if query %} · {{ query }}{% endif %}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500&family=Barlow+Condensed:wght@500;600;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}ReelFinder · {{ query }}{% endblock %}
+
+{% block content %}
 {% macro card_body(r) %}
   <div class="poster">
     <span class="badge badge-{{ r.media_type }}">{{ r.media_type|upper }}</span>
@@ -25,30 +18,14 @@
   </span>
 {% endmacro %}
 
-<header class="site-header">
-  <a class="logo" href="/search">REELFINDER</a>
-  <form class="search-form" action="/search" method="get">
-    <label class="sr-only" for="q">Search movies and TV shows</label>
-    <input id="q" name="q" type="search" value="{{ query }}" data-testid="search-input">
-    <button type="submit">Search</button>
-  </form>
-</header>
-
-<main>
-  <h1 data-testid="result-count">{{ results|length }} result{{ "" if results|length == 1 else "s" }} for “{{ query }}”</h1>
-  <div class="grid">
-    {% for r in results %}
-      {% if r.media_type in ("movie", "tv") %}
-        <a class="card" data-testid="result-card" href="/details/{{ r.media_type }}/{{ r.id }}">{{ card_body(r) }}</a>
-      {% else %}
-        <div class="card" data-testid="result-card">{{ card_body(r) }}</div>
-      {% endif %}
-    {% endfor %}
-  </div>
-</main>
-
-<footer class="site-footer">
-  This product uses the TMDB API but is not endorsed or certified by TMDB.
-</footer>
-</body>
-</html>
+<h1 data-testid="result-count">{{ results|length }} result{{ "" if results|length == 1 else "s" }} for “{{ query }}”</h1>
+<div class="grid">
+  {% for r in results %}
+    {% if r.media_type in ("movie", "tv") %}
+      <a class="card" data-testid="result-card" href="/details/{{ r.media_type }}/{{ r.id }}">{{ card_body(r) }}</a>
+    {% else %}
+      <div class="card" data-testid="result-card">{{ card_body(r) }}</div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}
