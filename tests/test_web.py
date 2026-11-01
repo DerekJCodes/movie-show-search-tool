@@ -8,6 +8,7 @@ class FakeWebClient:
              "release_date": "2002-05-01", "vote_average": 7.4},
             {"id": 2, "media_type": "tv", "name": "Beta Show",
              "first_air_date": "1994-11-19", "vote_average": 8.3},
+            {"id": 3, "media_type": "person", "name": "Gamma Person"},
         ]}
 
 class FakeTVClient:
@@ -26,3 +27,13 @@ def test_search_page_lists_results():
     body = response.get_data(as_text=True)
     assert "Alpha Movie" in body
     assert "Beta Show" in body
+
+def test_search_page_links_movies_and_tv_but_not_people():
+    app = create_app(client=FakeWebClient())
+
+    body = app.test_client().get("/search?q=zzz").get_data(as_text=True)
+
+    assert "/details/movie/1" in body
+    assert "/details/tv/2" in body
+    assert "Gamma Person" in body
+    assert "/details/person" not in body

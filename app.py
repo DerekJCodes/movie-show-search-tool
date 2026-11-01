@@ -1,5 +1,6 @@
-from flask import Flask, request
+from flask import Flask, render_template, request
 from services.converter import convert_results
+
 
 def create_app(client=None):
     app = Flask(__name__)
@@ -9,6 +10,6 @@ def create_app(client=None):
         query = request.args.get("q", "")
         raw = client.search_multi(query)
         results = convert_results(raw)
-        titles = [r.title for r in results]
-        return "\n".join(titles)
+        return render_template("search.html", query=query, results=results)
+
     return app

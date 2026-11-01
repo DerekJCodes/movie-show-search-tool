@@ -1,0 +1,26 @@
+:root {
+  --bg: #17133D; --panel: #221C5C; --line: #2F2970; --edge: #4A41A8;
+  --pink: #E56EAA; --teal: #93DDDF; --text: #F4F1FF; --muted: #B9B3E8;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+a { color: var(--teal); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.site-header { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 20px 48px; border-bottom: 1px solid var(--line); }
+.logo { font-family: 'Silkscreen', monospace; font-size: 26px; font-weight: 700; color: var(--pink); text-decoration: none; letter-spacing: 1px; }
+.search-form { flex: 1 1 360px; max-width: 640px; display: flex; gap: 12px; margin: 0; }
+.search-form input { flex: 1; min-width: 0; height: 48px; padding: 0 16px; font: 18px 'Barlow', sans-serif; color: var(--text); background: var(--panel); border: 2px solid var(--edge); border-radius: 8px; }
+.search-form button { height: 48px; padding: 0 24px; font: 700 20px 'Barlow Condensed', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--bg); background: var(--pink); border: 0; border-radius: 8px; cursor: pointer; }
+main { flex: 1; padding: 32px 48px 48px; }
+h1 { margin: 0 0 24px; font: 700 40px/1.1 'Barlow Condensed', sans-serif; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 28px 24px; }
+.card { display: flex; flex-direction: column; gap: 10px; color: var(--text); text-decoration: none; }
+.poster { position: relative; aspect-ratio: 2 / 3; background: var(--line); border: 2px solid var(--edge); border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.poster img { width: 100%; height: 100%; object-fit: cover; }
+.initial { font: 700 72px 'Silkscreen', monospace; color: var(--pink); }
+.badge { position: absolute; top: 10px; left: 10px; padding: 4px 10px; font: 700 14px 'Barlow Condensed', sans-serif; letter-spacing: 1px; color: var(--bg); border-radius: 4px; z-index: 1; }
+.badge-movie { background: var(--teal); } .badge-tv { background: var(--pink); } .badge-person { background: var(--text); }
+.title { font: 600 22px/1.15 'Barlow Condensed', sans-serif; }
+.meta { font-size: 15px; color: var(--muted); }
+a.card:hover .title { color: var(--pink); }
+.site-footer { padding: 20px 48px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); }
