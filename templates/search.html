@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}ReelFinder · {{ query }}{% endblock %}
+
+{% block content %}
+{% macro card_body(r) %}
+  <div class="poster">
+    <span class="badge badge-{{ r.media_type }}">{{ r.media_type|upper }}</span>
+    {% if r.poster_path %}
+      <img src="https://image.tmdb.org/t/p/w342{{ r.poster_path }}" alt="">
+    {% else %}
+      <span class="initial">{{ (r.title or "?")[:1] }}</span>
+    {% endif %}
+  </div>
+  <span class="title">{{ r.title }}</span>
+  <span class="meta">
+    {{ r.date[:4] if r.date else "" }}
+    {% if r.vote_average is not none %} · ★ {{ "%.1f"|format(r.vote_average) }}{% endif %}
+  </span>
+{% endmacro %}
+
+<h1 data-testid="result-count">{{ results|length }} result{{ "" if results|length == 1 else "s" }} for “{{ query }}”</h1>
+<div class="grid">
+  {% for r in results %}
+    {% if r.media_type in ("movie", "tv") %}
+      <a class="card" data-testid="result-card" href="/details/{{ r.media_type }}/{{ r.id }}">{{ card_body(r) }}</a>
+    {% else %}
+      <div class="card" data-testid="result-card">{{ card_body(r) }}</div>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

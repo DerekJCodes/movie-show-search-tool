@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}ReelFinder · {{ d.title }}{% endblock %}
+
+{% block content %}
+<div class="details">
+  <div class="poster details-poster">
+    {% if d.poster_path %}
+      <img src="https://image.tmdb.org/t/p/w500{{ d.poster_path }}" alt="Poster for {{ d.title }}">
+    {% else %}
+      <span class="initial">{{ (d.title or "?")[:1] }}</span>
+    {% endif %}
+  </div>
+  <div class="details-body">
+    <span class="badge-inline badge-{{ d.media_type }}">{{ d.media_type|upper }}</span>
+    <h1 data-testid="details-title">{{ d.title }}</h1>
+    <p class="meta">{{ d.meta }}</p>
+    <p class="overview">{{ d.overview }}</p>
+    <h2>Top cast</h2>
+    <ul class="cast">
+      {% for c in d.cast %}
+        <li data-testid="cast-member"><span class="cast-name">{{ c.name }}</span><span class="meta">as {{ c.character }}</span></li>
+      {% else %}
+        <li>No cast listed.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
